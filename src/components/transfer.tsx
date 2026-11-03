@@ -29,8 +29,12 @@ export function Field({ label, hint, error, children }: { label: string; hint?: 
   )
 }
 
+export function balanceLabel(a: Account) {
+  return a.balance === null ? 'другой банк' : formatRub(a.balance)
+}
+
 function AccountIcon({ account }: { account: Account }) {
-  return account.kind === 'card'
+  return account.kind !== 'wallet'
     ? <PaymentSystemBadge system={account.paymentSystem} />
     : <span className="round-icon tiny"><Wallet size={14} /></span>
 }
@@ -60,7 +64,7 @@ export function AccountSelect({ accounts, value, onChange, placeholder = 'Выб
           <>
             <AccountIcon account={value} />
             <span className="select-title">{value.title}</span>
-            <span>{formatRub(value.balance)}</span>
+            <span>{balanceLabel(value)}</span>
           </>
         ) : (
           <span className="placeholder select-title">{placeholder}</span>
@@ -73,7 +77,7 @@ export function AccountSelect({ accounts, value, onChange, placeholder = 'Выб
             <button type="button" key={a.id} className="select-option" onClick={() => { onChange(a); setOpen(false) }}>
               <AccountIcon account={a} />
               <span className="select-title">{a.title}</span>
-              <span>{formatRub(a.balance)}</span>
+              <span>{balanceLabel(a)}</span>
             </button>
           ))}
         </div>
@@ -88,7 +92,8 @@ export function parseAmount(raw: string) {
 }
 
 export function amountError(amount: number, from: Account | null) {
-  if (from && amount > from.balance) return 'Недостаточно средств'
+  // Баланс карты другого банка неизвестен — проверит процессинг
+  if (from && from.balance !== null && amount > from.balance) return 'Недостаточно средств'
   return undefined
 }
 
@@ -112,7 +117,7 @@ export function Summary({ state }: { state: CommissionState }) {
     case 'loading':
       return <div className="summary muted-text">Считаем комиссию…</div>
     case 'error':
-      return <div className="summary error-text">Не удалось рассчитать комиссию, попробуйте ещё раз</div>
+      return <div className="summary error-text">{state.message}</div>
     case 'ready': {
       const { commission, total } = state.data
       return (

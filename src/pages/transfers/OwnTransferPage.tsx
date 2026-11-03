@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { useAccounts, useCommission, usePaymentSubmit, type Account } from '../../api'
+import { defaultSource, useAccounts, useCommission, usePaymentSubmit, type Account } from '../../api'
 import {
   AccountSelect, AmountInput, Field, PaymentResult, SubmitButton, Summary, TransferLayout, amountError, parseAmount, totalOf,
 } from '../../components/transfer'
@@ -15,8 +15,9 @@ export default function OwnTransferPage() {
   const payment = usePaymentSubmit()
 
   // Берём счета из свежего списка: после перевода балансы обновятся и в выпадающих списках
-  const from = accounts.find((a) => a.id === fromId) ?? null
   const to = accounts.find((a) => a.id === toId) ?? null
+  // По умолчанию — инструмент оплаты по умолчанию (если он не совпадает со счётом зачисления)
+  const from = accounts.find((a) => a.id === fromId) ?? (accounts.length ? defaultSource(accounts, toId) : null)
 
   // «Пополнить» на странице кошелька открывает перевод с уже выбранным кошельком в «Зачислить на»
   useEffect(() => {
@@ -75,7 +76,7 @@ export default function OwnTransferPage() {
           <AccountSelect accounts={accounts} value={from} onChange={chooseFrom} placeholder="Выберите источник списания" />
         </Field>
         <Field label="Зачислить на">
-          <AccountSelect accounts={accounts.filter((a) => a.id !== from?.id)} value={to} onChange={(a) => setToId(a.id)} placeholder="Выберите источник зачисления" />
+          <AccountSelect accounts={accounts.filter((a) => a.id !== from?.id && a.kind !== 'external')} value={to} onChange={(a) => setToId(a.id)} placeholder="Выберите источник зачисления" />
         </Field>
         <Field label="Сумма перевода" error={amountErr}>
           <AmountInput value={rawAmount} onChange={setRawAmount} />

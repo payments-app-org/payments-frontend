@@ -5,29 +5,37 @@ export const CURRENT_USER_ID = '00000000-0000-0000-0000-000000000001'
 
 export type PaymentSystem = 'MIR' | 'VISA' | 'MASTERCARD'
 
-// balance — сколько можно потратить (без зарезервированного под платежи в процессе).
-// title — для выпадающих списков («Кредитная ·· 1006»), name и last4 — по отдельности.
 // Лимиты счёта; null — без ограничения
 export type AccountLimits = { maxPayment: number | null; maxBalance: number | null; maxMonthlyTurnover: number | null }
 
+// kind: wallet — «Мой кошелёк», card — карта нашего банка, external — привязанная карта другого банка.
+// balance — сколько можно потратить (без зарезервированного под платежи в процессе); null — неизвестно (карта другого банка).
+// title — для выпадающих списков («Кредитная ·· 1006»), name и last4 — по отдельности.
+// defaultForPayments — «сердечко»: подставляется в «Списать с» по умолчанию.
 export type Account = {
   id: string
-  kind: 'card' | 'wallet'
+  kind: 'card' | 'wallet' | 'external'
   title: string
   name: string
   last4: string | null
   paymentSystem: PaymentSystem | null
-  balance: number
+  balance: number | null
+  cardExpiry: string | null
+  isDefault: boolean
+  defaultForPayments: boolean
   limits: AccountLimits | null
 }
 
 type ApiAccount = {
   id: string
-  type: 'WALLET' | 'CARD'
+  type: 'WALLET' | 'CARD' | 'EXTERNAL_CARD'
   title: string
-  available: number
+  available: number | null
   cardLast4: string | null
   paymentSystem: PaymentSystem | null
+  cardExpiry: string | null
+  isDefault: boolean
+  defaultForPayments: boolean
   limits: AccountLimits | null
 }
 
@@ -76,15 +84,34 @@ async function request<T>(url: string, init?: RequestInit): Promise<T> {
 }
 
 function toAccount(a: ApiAccount): Account {
-  const base = { id: a.id, name: a.title, last4: a.cardLast4, paymentSystem: a.paymentSystem, balance: a.available, limits: a.limits }
-  return a.type === 'CARD'
-    ? { ...base, kind: 'card', title: `${a.title} ·· ${a.cardLast4}` }
-    : { ...base, kind: 'wallet', title: a.title }
+  const base = {
+    id: a.id, name: a.title, last4: a.cardLast4, paymentSystem: a.paymentSystem, balance: a.available,
+    cardExpiry: a.cardExpiry, isDefault: a.isDefault, defaultForPayments: a.defaultForPayments, limits: a.limits,
+  }
+  if (a.type === 'WALLET') return { ...base, kind: 'wallet', title: a.title }
+  return { ...base, kind: a.type === 'CARD' ? 'card' : 'external', title: `${a.title} ·· ${a.cardLast4}` }
 }
 
-// По умолчанию списываем с карты, как в макете; кошелёк — если карт нет
-export function defaultSource(accounts: Account[] | null) {
-  return accounts?.find((a) => a.kind === 'card') ?? accounts?.[0] ?? null
+// «Списать с» по умолчанию: отмеченный сердечком счёт, иначе первая карта нашего банка, иначе что есть
+export function defaultSource(accounts: Account[] | null, except?: string | null) {
+  const candidates = accounts?.filter((a) => a.id !== except) ?? []
+  return candidates.find((a) => a.defaultForPayments) ?? candidates.find((a) => a.kind === 'card') ?? candidates[0] ?? null
+}
+
+export function linkCard(cardNumber: string, expiry: string, cvc: string) {
+  return request<ApiAccount>(`/api/users/${CURRENT_USER_ID}/linked-cards`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ cardNumber, expiry, cvc }),
+  }).then((a) => { notifyAccountsChanged(); return toAccount(a) })
+}
+
+export function setDefaultPaymentAccount(accountId: string) {
+  return request<ApiAccount[]>(`/api/users/${CURRENT_USER_ID}/default-payment-account`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ accountId }),
+  }).then(() => notifyAccountsChanged())
 }
 
 export function fetchAccounts() {
@@ -103,7 +130,13 @@ export function fetchCommission(operationType: OperationType, sourceAccountId: s
   })
 }
 
-export type Profile = { id: string; displayName: string; phone: string; subscription: 'NONE' | 'PREMIUM' | 'PREMIUM_PLUS' }
+export type Profile = {
+  id: string
+  displayName: string
+  phone: string
+  subscription: 'NONE' | 'PREMIUM' | 'PREMIUM_PLUS'
+  identificationLevel: 'ANONYMOUS' | 'SIMPLIFIED' | 'FULL'
+}
 
 export function useProfile() {
   const [profile, setProfile] = useState<Profile | null>(null)
@@ -143,7 +176,7 @@ export type CommissionState =
   | { status: 'idle' }
   | { status: 'loading' }
   | { status: 'ready'; data: Commission }
-  | { status: 'error' }
+  | { status: 'error'; message: string }
 
 const DEBOUNCE_MS = 500
 
@@ -168,7 +201,11 @@ export function useCommission(operationType: OperationType, sourceAccountId: str
         { recipientCardNumber: recipientCardNumber || undefined, destinationAccountId: destinationAccountId || undefined },
         controller.signal).then(
         (data) => setState({ status: 'ready', data }),
-        () => { if (!controller.signal.aborted) setState({ status: 'error' }) },
+        (e) => {
+          if (controller.signal.aborted) return
+          // 422 — такой перевод недоступен (например, по СБП с карты другого банка): показываем причину
+          setState({ status: 'error', message: e instanceof ApiError && e.status === 422 ? e.message : 'Не удалось рассчитать комиссию, попробуйте ещё раз' })
+        },
       )
     }, DEBOUNCE_MS)
     return () => {

@@ -70,7 +70,7 @@ export default function WalletPage() {
       <section className="wallet-hero">
         <button type="button" className="wallet-qr" aria-label="Оплатить по QR"><ScanLine size={22} /></button>
         <h1>Мой кошелёк</h1>
-        <div className="wallet-balance">{wallet ? formatRub(wallet.balance) : '…'}</div>
+        <div className="wallet-balance">{wallet ? formatRub(wallet.balance ?? 0) : '…'}</div>
         <div className="wallet-phone">{profile ? formatPhone(profile.phone) : ' '}</div>
         <div className="wallet-art"><Wallet size={120} strokeWidth={1.2} /></div>
         <div className="wallet-actions">

@@ -42,7 +42,7 @@ export default function Sidebar() {
   const { accounts, error } = useAccounts()
   // «Мой кошелёк» у пользователя всегда один, карт может быть сколько угодно
   const wallet = accounts?.find((a) => a.kind === 'wallet')
-  const cards = accounts?.filter((a) => a.kind === 'card') ?? []
+  const cards = accounts?.filter((a) => a.kind !== 'wallet') ?? []
   const status = error ? 'Не удалось загрузить' : 'Загружаем…'
 
   return (
@@ -52,7 +52,7 @@ export default function Sidebar() {
           <Link to="/wallet" className="row sidebar-link">
             <div>
               <div className="small">{wallet.name}</div>
-              <div className="balance">{formatRub(wallet.balance)}</div>
+              <div className="balance">{formatRub(wallet.balance ?? 0)}</div>
             </div>
             <span className="round-icon big"><Wallet size={20} /></span>
           </Link>
@@ -64,23 +64,25 @@ export default function Sidebar() {
           {!accounts && <div className="small muted">{status}</div>}
           {accounts && cards.length === 0 && <div className="small muted">Карт пока нет</div>}
           {cards.map((card) => (
-            <div key={card.id} className="card-row">
+            <Link to="/cards" key={card.id} className="card-row sidebar-link">
               <div className="card-info">
                 <div className="small ellipsis">{card.name}</div>
-                <div className="balance">{formatRub(card.balance)}</div>
+                {card.balance === null
+                  ? <div className="small muted card-external">другой банк</div>
+                  : <div className="balance">{formatRub(card.balance)}</div>}
               </div>
               <div className="card-meta">
                 <div className="small">·· {card.last4}</div>
                 <PaymentSystemBadge system={card.paymentSystem} />
               </div>
-            </div>
+            </Link>
           ))}
         </div>
         <div className="divider" />
-        <div className="row">
+        <Link to="/cards" className="row sidebar-link">
           <div className="small">Привязать карту другого банка</div>
           <Link2 size={18} />
-        </div>
+        </Link>
       </Collapsible>
     </aside>
   )
