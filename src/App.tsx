@@ -13,6 +13,7 @@ import WalletTransferPage from './pages/wallet/WalletTransferPage'
 import PhoneTransferPage from './pages/transfers/PhoneTransferPage'
 import CardTransferPage from './pages/transfers/CardTransferPage'
 import OwnTransferPage from './pages/transfers/OwnTransferPage'
+import AbroadTransferPage from './pages/transfers/AbroadTransferPage'
 
 // Страницы во всю ширину — без левой панели с кошельками и картами
 const FULL_WIDTH = ['/cards']
@@ -31,6 +32,7 @@ export default function App() {
             <Route path="/transfers/phone" element={<PhoneTransferPage />} />
             <Route path="/transfers/card" element={<CardTransferPage />} />
             <Route path="/transfers/own" element={<OwnTransferPage />} />
+            <Route path="/transfers/abroad" element={<AbroadTransferPage />} />
             <Route path="/cards" element={<CardsPage />} />
             <Route path="/wallet" element={<WalletPage />} />
             <Route path="/wallet/conditions" element={<WalletConditionsPage />} />

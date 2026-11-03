@@ -27,7 +27,7 @@ export const transferTypes = [
   { id: 'phone', title: 'По номеру телефона', icon: 'Phone', to: '/transfers/phone' },
   { id: 'card', title: 'По номеру карты', icon: 'CreditCard', to: '/transfers/card' },
   { id: 'own', title: 'Между своими счетами', icon: 'ArrowLeftRight', to: '/transfers/own' },
-  { id: 'abroad', title: 'За рубеж', icon: 'Globe' },
+  { id: 'abroad', title: 'За рубеж', icon: 'Globe', to: '/transfers/abroad' },
   { id: 'requisites', title: 'По реквизитам', icon: 'File' },
   { id: 'wallet', title: 'На кошелек', icon: 'Wallet' },
 ] as const

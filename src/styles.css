@@ -418,6 +418,36 @@ h3 { font-size: 18px; margin: 0; font-weight: 600; }
 .day-total { font-size: 15px; font-weight: 500; margin-left: 8px; }
 .analytics-ops .day { padding: 16px 0; }
 
+.flag-tile { width: 44px; height: 44px; border-radius: 12px; background: var(--soft); display: inline-flex; align-items: center; justify-content: center;
+  font-size: 30px; flex-shrink: 0; overflow: hidden; }
+.picker-option .flag-tile { width: 52px; height: 52px; font-size: 36px; }
+.search-box { display: flex; align-items: center; gap: 10px; height: 52px; padding: 0 16px; border-radius: 14px; background: var(--soft); color: var(--muted); margin-bottom: 12px; }
+.search-box input { flex: 1; border: 0; outline: 0; background: transparent; font: inherit; font-size: 16px; color: var(--text); }
+.scroll-list { max-height: 60vh; overflow-y: auto; }
+.method-logo { color: #fff; font-weight: 800; font-size: 15px; }
+.method-kinds { margin-bottom: 12px; }
+.method-list { display: flex; flex-direction: column; gap: 10px; padding-bottom: 12px; }
+.method-card { display: flex; flex-direction: column; gap: 14px; padding: 16px; border-radius: 18px; background: var(--soft); text-align: left; }
+.method-card:hover { background: #e7e9ee; }
+.method-card-head { display: flex; align-items: center; gap: 14px; }
+.method-card .acc-tile { width: 52px; height: 52px; border-radius: 14px; }
+.method-name { font-weight: 700; }
+.method-card-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 8px; font-size: 15px; font-weight: 600; }
+.method-card-grid small { display: block; font-size: 13px; font-weight: 400; color: #6b6e77; }
+.method-card-grid span:last-child { text-align: right; }
+.currency-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.currency-chip { display: inline-flex; align-items: center; gap: 8px; height: 48px; padding: 0 18px 0 12px; border-radius: 16px; background: var(--soft); font-size: 16px; font-weight: 600; border: 2px solid transparent; }
+.currency-chip.active { background: #fff; border-color: var(--dark); }
+.currency-flag { font-size: 24px; line-height: 1; }
+.amounts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.input-suffix { display: flex; align-items: center; gap: 8px; }
+.input-suffix input { flex: 1; min-width: 0; border: 0; outline: 0; font: inherit; font-size: 17px; background: transparent; }
+.input-suffix span { color: #6b6e77; font-weight: 600; }
+.input-suffix:focus-within { border-color: var(--text); }
+.abroad-method-line { display: flex; align-items: center; gap: 14px; font-weight: 600; }
+.abroad-actions { display: flex; gap: 12px; }
+.abroad-actions .btn-primary { align-self: auto; }
+
 @media (max-width: 1000px) {
   .layout { grid-template-columns: 1fr; gap: 24px; padding: 24px 16px; }
   .tiles, .docs { grid-template-columns: 1fr 1fr; }
@@ -427,7 +457,7 @@ h3 { font-size: 18px; margin: 0; font-weight: 600; }
   .header-inner { padding: 0 16px; gap: 16px; }
   .top-cards, .tiles, .docs { grid-template-columns: 1fr; }
   .history { padding: 24px 16px; }
-  .tiles-2, .add-card-row { grid-template-columns: 1fr; }
+  .tiles-2, .add-card-row, .amounts-row { grid-template-columns: 1fr; }
   .detail-row { grid-template-columns: 1fr; gap: 4px; }
   .totals-row { grid-template-columns: 1fr; }
   .analytics { padding: 24px 16px; }

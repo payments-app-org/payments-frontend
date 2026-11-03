@@ -229,12 +229,18 @@ export function useCommission(operationType: OperationType, sourceAccountId: str
 }
 
 export type PaymentRequest = {
-  type: 'SBP_PHONE' | 'CARD2CARD' | 'OWN_TRANSFER'
+  type: 'SBP_PHONE' | 'CARD2CARD' | 'OWN_TRANSFER' | 'ABROAD'
   sourceAccountId: string
   recipientPhone?: string
   recipientBankId?: string
   recipientCardNumber?: string
   destinationAccountId?: string
+  // За рубеж
+  country?: string
+  receiveCurrency?: string
+  receiveAmount?: number
+  transferMethodId?: number
+  recipientFields?: Record<string, string>
   amount: number
   quoteToken: string
   message?: string
