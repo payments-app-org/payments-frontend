@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { ChevronDown, ChevronLeft, CircleCheck, CircleX, LoaderCircle, Wallet } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import type { Account, CommissionState, Payment } from '../api'
-import { formatRub } from '../format'
+import { formatRub, tariffLabel } from '../format'
 import PaymentSystemBadge from './PaymentSystemBadge'
 
 // Общие куски форм переводов: каркас страницы, выбор счёта, сумма, итог
@@ -104,8 +104,6 @@ export function AmountInput({ value, onChange, placeholder = '0 ₽' }: { value:
   )
 }
 
-const percentFormat = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 2 })
-
 // Комиссию считает сервис pricing; здесь только показываем результат
 export function Summary({ state }: { state: CommissionState }) {
   switch (state.status) {
@@ -116,11 +114,11 @@ export function Summary({ state }: { state: CommissionState }) {
     case 'error':
       return <div className="summary error-text">Не удалось рассчитать комиссию, попробуйте ещё раз</div>
     case 'ready': {
-      const { commission, percent, total } = state.data
+      const { commission, total } = state.data
       return (
         <div className="summary">
           <div className="summary-row">
-            <span>Комиссия {percentFormat.format(percent)} %</span>
+            <span>Комиссия {tariffLabel(state.data)}</span>
             <span>{formatRub(commission)}</span>
           </div>
           <div className="summary-row total"><span>Итого к списанию</span><span>{formatRub(total)}</span></div>

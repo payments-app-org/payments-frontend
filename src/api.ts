@@ -7,6 +7,9 @@ export type PaymentSystem = 'MIR' | 'VISA' | 'MASTERCARD'
 
 // balance — сколько можно потратить (без зарезервированного под платежи в процессе).
 // title — для выпадающих списков («Кредитная ·· 1006»), name и last4 — по отдельности.
+// Лимиты счёта; null — без ограничения
+export type AccountLimits = { maxPayment: number | null; maxBalance: number | null; maxMonthlyTurnover: number | null }
+
 export type Account = {
   id: string
   kind: 'card' | 'wallet'
@@ -15,6 +18,7 @@ export type Account = {
   last4: string | null
   paymentSystem: PaymentSystem | null
   balance: number
+  limits: AccountLimits | null
 }
 
 type ApiAccount = {
@@ -24,6 +28,7 @@ type ApiAccount = {
   available: number
   cardLast4: string | null
   paymentSystem: PaymentSystem | null
+  limits: AccountLimits | null
 }
 
 export type OperationType = 'SBP_PHONE' | 'CARD2CARD' | 'OWN_TRANSFER'
@@ -31,6 +36,8 @@ export type OperationType = 'SBP_PHONE' | 'CARD2CARD' | 'OWN_TRANSFER'
 export type Commission = {
   amount: number
   percent: number
+  minFee: number
+  fixedFee: number
   commission: number
   total: number
   subscription: 'NONE' | 'PREMIUM' | 'PREMIUM_PLUS'
@@ -69,7 +76,7 @@ async function request<T>(url: string, init?: RequestInit): Promise<T> {
 }
 
 function toAccount(a: ApiAccount): Account {
-  const base = { id: a.id, name: a.title, last4: a.cardLast4, paymentSystem: a.paymentSystem, balance: a.available }
+  const base = { id: a.id, name: a.title, last4: a.cardLast4, paymentSystem: a.paymentSystem, balance: a.available, limits: a.limits }
   return a.type === 'CARD'
     ? { ...base, kind: 'card', title: `${a.title} ·· ${a.cardLast4}` }
     : { ...base, kind: 'wallet', title: a.title }
@@ -84,13 +91,31 @@ export function fetchAccounts() {
   return request<ApiAccount[]>(`/api/users/${CURRENT_USER_ID}/accounts`).then((list) => list.map(toAccount))
 }
 
-export function fetchCommission(operationType: OperationType, sourceAccountId: string, amount: number, signal: AbortSignal) {
+// От чего ещё зависит тариф: карта получателя (наша или чужая) или свой счёт зачисления
+export type CommissionTarget = { recipientCardNumber?: string; destinationAccountId?: string }
+
+export function fetchCommission(operationType: OperationType, sourceAccountId: string, amount: number, target: CommissionTarget, signal: AbortSignal) {
   return request<Commission>('/api/pricing/commission', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ userId: CURRENT_USER_ID, sourceAccountId, operationType, amount }),
+    body: JSON.stringify({ userId: CURRENT_USER_ID, sourceAccountId, operationType, amount, ...target }),
     signal,
   })
+}
+
+export type Profile = { id: string; displayName: string; phone: string; subscription: 'NONE' | 'PREMIUM' | 'PREMIUM_PLUS' }
+
+export function useProfile() {
+  const [profile, setProfile] = useState<Profile | null>(null)
+  useEffect(() => { request<Profile>(`/api/users/${CURRENT_USER_ID}`).then(setProfile, () => {}) }, [])
+  return profile
+}
+
+export type TariffRow = { label: string; percent: number; minFee: number; fixedFee: number }
+export type TariffSection = { operationType: string; title: string; outgoing: TariffRow[]; incoming: TariffRow[] }
+
+export function fetchTariffs(account: 'WALLET' | 'OUR_CARD') {
+  return request<{ subscription: string; sections: TariffSection[] }>(`/api/pricing/tariffs?userId=${CURRENT_USER_ID}&account=${account}`)
 }
 
 const ACCOUNTS_CHANGED = 'accounts-changed'
@@ -124,18 +149,24 @@ const DEBOUNCE_MS = 500
 
 // Считаем комиссию через полсекунды после того, как пользователь перестал вводить сумму.
 // refresh — увеличить, чтобы взять новую котировку (старая использована или истекла).
-export function useCommission(operationType: OperationType, sourceAccountId: string | undefined, amount: number, refresh = 0): CommissionState {
+// target === null — получатель ещё не указан, считать рано.
+export function useCommission(operationType: OperationType, sourceAccountId: string | undefined, amount: number, refresh = 0,
+  target: CommissionTarget | null = {}): CommissionState {
   const [state, setState] = useState<CommissionState>({ status: 'idle' })
+  const targetKey = target === null ? null : `${target.recipientCardNumber ?? ''}|${target.destinationAccountId ?? ''}`
 
   useEffect(() => {
-    if (amount <= 0 || !sourceAccountId) {
+    if (amount <= 0 || !sourceAccountId || targetKey === null) {
       setState({ status: 'idle' })
       return
     }
+    const [recipientCardNumber, destinationAccountId] = targetKey.split('|')
     setState({ status: 'loading' })
     const controller = new AbortController()
     const timer = setTimeout(() => {
-      fetchCommission(operationType, sourceAccountId, amount, controller.signal).then(
+      fetchCommission(operationType, sourceAccountId, amount,
+        { recipientCardNumber: recipientCardNumber || undefined, destinationAccountId: destinationAccountId || undefined },
+        controller.signal).then(
         (data) => setState({ status: 'ready', data }),
         () => { if (!controller.signal.aborted) setState({ status: 'error' }) },
       )
@@ -144,7 +175,7 @@ export function useCommission(operationType: OperationType, sourceAccountId: str
       clearTimeout(timer)
       controller.abort()
     }
-  }, [operationType, sourceAccountId, amount, refresh])
+  }, [operationType, sourceAccountId, amount, refresh, targetKey])
 
   return state
 }

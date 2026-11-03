@@ -31,9 +31,11 @@ export default function CardTransferPage() {
   const cardErr = digits.length === 16 && !luhn(digits) ? 'Проверьте номер карты' : undefined
   const from = accounts?.find((a) => a.id === fromId) ?? defaultSource(accounts)
   const amount = parseAmount(rawAmount)
-  const commission = useCommission('CARD2CARD', from?.id, amount, quoteRefresh)
+  // Тариф зависит от карты получателя (наша или другого банка) — считаем, когда номер введён полностью
+  const cardReady = digits.length === 16 && !cardErr
+  const commission = useCommission('CARD2CARD', from?.id, amount, quoteRefresh, cardReady ? { recipientCardNumber: digits } : null)
   const amountErr = amountError(totalOf(commission, amount), from)
-  const valid = !!from && digits.length === 16 && !cardErr && commission.status === 'ready' && !amountErr
+  const valid = !!from && cardReady && commission.status === 'ready' && !amountErr
   const submitting = payment.state.status === 'submitting'
 
   const submit = (e: FormEvent) => {

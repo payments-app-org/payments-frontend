@@ -54,8 +54,8 @@ function periodRange(f: HistoryFilters): { from?: string; to?: string } {
   return { from: isoDate.format(new Date(Date.now() - days * 86_400_000)) }
 }
 
-export async function fetchOperations(f: HistoryFilters, cursor: string | null, signal?: AbortSignal) {
-  const q = new URLSearchParams({ limit: '30' })
+export async function fetchOperations(f: HistoryFilters, cursor: string | null, signal?: AbortSignal, limit = 30) {
+  const q = new URLSearchParams({ limit: String(limit) })
   if (f.accountId) q.set('accountId', f.accountId)
   const { from, to } = periodRange(f)
   if (from) q.set('from', from)

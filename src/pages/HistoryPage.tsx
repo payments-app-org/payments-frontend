@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { SlidersHorizontal } from 'lucide-react'
+import { useSearchParams } from 'react-router-dom'
 import { useAccounts } from '../api'
 import CategoryIcon from '../components/CategoryIcon'
 import HistoryFiltersModal from '../components/HistoryFiltersModal'
@@ -35,7 +36,9 @@ type Feed = { items: Operation[]; cursor: string | null; loading: boolean; error
 export default function HistoryPage() {
   const { accounts } = useAccounts()
   const [categories, setCategories] = useState<Category[]>([])
-  const [filters, setFilters] = useState<HistoryFilters>(EMPTY_FILTERS)
+  const [params] = useSearchParams()
+  // «Посмотреть все» со страницы кошелька открывает историю уже отфильтрованной по счёту
+  const [filters, setFilters] = useState<HistoryFilters>(() => ({ ...EMPTY_FILTERS, accountId: params.get('accountId') }))
   const [modalOpen, setModalOpen] = useState(false)
   const [feed, setFeed] = useState<Feed>({ items: [], cursor: null, loading: true, error: false, done: false })
   const sentinel = useRef<HTMLDivElement>(null)

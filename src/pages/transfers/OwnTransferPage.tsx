@@ -1,4 +1,5 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useAccounts, useCommission, type Account } from '../../api'
 import {
   AccountSelect, AmountInput, Field, SubmitButton, Success, Summary, TransferLayout, amountError, parseAmount, totalOf,
@@ -10,9 +11,18 @@ export default function OwnTransferPage() {
   const [to, setTo] = useState<Account | null>(null)
   const [rawAmount, setRawAmount] = useState('')
   const [done, setDone] = useState(false)
+  const [params] = useSearchParams()
+
+  // «Пополнить» на странице кошелька открывает перевод с уже выбранным кошельком в «Зачислить на»
+  useEffect(() => {
+    if (params.get('to') === 'wallet' && !to) {
+      const wallet = accounts.find((a) => a.kind === 'wallet')
+      if (wallet) setTo(wallet)
+    }
+  }, [accounts, params, to])
 
   const amount = parseAmount(rawAmount)
-  const commission = useCommission('OWN_TRANSFER', from?.id, amount)
+  const commission = useCommission('OWN_TRANSFER', from?.id, amount, 0, to ? { destinationAccountId: to.id } : null)
   const amountErr = amountError(totalOf(commission, amount), from)
   const valid = !!from && !!to && from.id !== to.id && commission.status === 'ready' && !amountErr
 

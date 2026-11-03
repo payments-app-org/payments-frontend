@@ -12,3 +12,12 @@ const SYMBOLS: Record<string, string> = { RUB: '₽', USD: '$', EUR: '€' }
 export function formatMoney(value: number, currency: string) {
   return `${(Number.isInteger(value) ? rubles : kopecks).format(value)} ${SYMBOLS[currency] ?? currency}`
 }
+
+const percentFormat = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 2 })
+
+// Тариф словами: «1,5%», «3% (мин. 50 ₽)», «10 ₽ + 1,5%»
+export function tariffLabel(t: { percent: number; minFee: number; fixedFee: number }) {
+  const percent = `${percentFormat.format(t.percent)}%`
+  const base = t.fixedFee > 0 ? `${formatRub(t.fixedFee)} + ${percent}` : percent
+  return t.minFee > 0 ? `${base} (мин. ${formatRub(t.minFee)})` : base
+}
