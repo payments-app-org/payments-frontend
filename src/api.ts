@@ -181,11 +181,12 @@ export function useCommission(operationType: OperationType, sourceAccountId: str
 }
 
 export type PaymentRequest = {
-  type: 'SBP_PHONE' | 'CARD2CARD'
+  type: 'SBP_PHONE' | 'CARD2CARD' | 'OWN_TRANSFER'
   sourceAccountId: string
   recipientPhone?: string
   recipientBankId?: string
   recipientCardNumber?: string
+  destinationAccountId?: string
   amount: number
   quoteToken: string
   message?: string
