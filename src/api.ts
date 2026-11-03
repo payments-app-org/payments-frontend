@@ -106,6 +106,11 @@ export function linkCard(cardNumber: string, expiry: string, cvc: string) {
   }).then((a) => { notifyAccountsChanged(); return toAccount(a) })
 }
 
+export function unlinkCard(accountId: string) {
+  return request<ApiAccount[]>(`/api/users/${CURRENT_USER_ID}/linked-cards/${accountId}`, { method: 'DELETE' })
+    .then(() => notifyAccountsChanged())
+}
+
 export function setDefaultPaymentAccount(accountId: string) {
   return request<ApiAccount[]>(`/api/users/${CURRENT_USER_ID}/default-payment-account`, {
     method: 'PUT',

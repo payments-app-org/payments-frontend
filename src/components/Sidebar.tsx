@@ -42,14 +42,15 @@ export default function Sidebar() {
   const { accounts, error } = useAccounts()
   // «Мой кошелёк» у пользователя всегда один, карт может быть сколько угодно
   const wallet = accounts?.find((a) => a.kind === 'wallet')
-  const cards = accounts?.filter((a) => a.kind !== 'wallet') ?? []
+  // Сначала привязанные карты других банков, затем наши — как в макете
+  const cards = [...(accounts?.filter((a) => a.kind === 'external') ?? []), ...(accounts?.filter((a) => a.kind === 'card') ?? [])]
   const status = error ? 'Не удалось загрузить' : 'Загружаем…'
 
   return (
     <aside className="sidebar">
       <Collapsible id="wallets" title="Кошельки">
         {wallet ? (
-          <Link to="/wallet" className="row sidebar-link">
+          <Link to="/cards" className="row sidebar-link">
             <div>
               <div className="small">{wallet.name}</div>
               <div className="balance">{formatRub(wallet.balance ?? 0)}</div>
@@ -64,18 +65,29 @@ export default function Sidebar() {
           {!accounts && <div className="small muted">{status}</div>}
           {accounts && cards.length === 0 && <div className="small muted">Карт пока нет</div>}
           {cards.map((card) => (
-            <Link to="/cards" key={card.id} className="card-row sidebar-link">
-              <div className="card-info">
-                <div className="small ellipsis">{card.name}</div>
-                {card.balance === null
-                  ? <div className="small muted card-external">другой банк</div>
-                  : <div className="balance">{formatRub(card.balance)}</div>}
-              </div>
-              <div className="card-meta">
-                <div className="small">·· {card.last4}</div>
-                <PaymentSystemBadge system={card.paymentSystem} />
-              </div>
-            </Link>
+            card.kind === 'external' ? (
+              // Карта другого банка: баланс не виден — вместо него маска номера
+              <Link to="/cards" key={card.id} className="card-row sidebar-link">
+                <div className="card-info">
+                  <div className="small linked-title">Карта *{card.last4} <Link2 size={14} /></div>
+                  <div className="balance card-mask">···· ···· ···· {card.last4}</div>
+                </div>
+                <div className="card-meta">
+                  <PaymentSystemBadge system={card.paymentSystem} />
+                </div>
+              </Link>
+            ) : (
+              <Link to="/cards" key={card.id} className="card-row sidebar-link">
+                <div className="card-info">
+                  <div className="small ellipsis">{card.name}</div>
+                  <div className="balance">{formatRub(card.balance ?? 0)}</div>
+                </div>
+                <div className="card-meta">
+                  <div className="small">·· {card.last4}</div>
+                  <PaymentSystemBadge system={card.paymentSystem} />
+                </div>
+              </Link>
+            )
           ))}
         </div>
         <div className="divider" />

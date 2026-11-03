@@ -248,6 +248,14 @@ h3 { font-size: 18px; margin: 0; font-weight: 600; }
 .input-icon { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); display: inline-flex; }
 .btn-primary.wide { align-self: stretch; }
 
+.linked-title { display: inline-flex; align-items: center; gap: 6px; }
+.card-mask { letter-spacing: .02em; }
+.section-link { display: inline-flex; align-items: center; gap: 4px; color: var(--text); text-decoration: none; }
+.section-link:hover { color: var(--accent); }
+.modal-text { margin: 0 0 16px; line-height: 1.5; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 12px; padding-bottom: 12px; }
+.modal-actions .btn-primary { align-self: auto; }
+
 @media (max-width: 1000px) {
   .layout { grid-template-columns: 1fr; gap: 24px; padding: 24px 16px; }
   .tiles, .docs { grid-template-columns: 1fr 1fr; }

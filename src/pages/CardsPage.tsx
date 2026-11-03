@@ -1,10 +1,11 @@
 import { useState, type ReactNode } from 'react'
-import { ArrowLeftRight, ArrowRight, FileText, Plus } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
-import { useAccounts, useProfile, type Account } from '../api'
+import { ArrowLeftRight, ArrowRight, ChevronRight, FileText, Plus, Trash2 } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
+import { ApiError, unlinkCard, useAccounts, useProfile, type Account } from '../api'
 import AddCardModal from '../components/AddCardModal'
 import Breadcrumbs from '../components/Breadcrumbs'
 import DefaultHeart from '../components/DefaultHeart'
+import Modal from '../components/Modal'
 import PaymentSystemBadge from '../components/PaymentSystemBadge'
 import { formatRub } from '../format'
 
@@ -26,8 +27,32 @@ function ActionButton({ icon, children, onClick, disabled, hint }: {
   )
 }
 
+// Подтверждение перед отвязкой карты другого банка
+function UnlinkModal({ card, onClose }: { card: Account; onClose: () => void }) {
+  const [error, setError] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
+  const confirm = () => {
+    setSaving(true)
+    unlinkCard(card.id).then(onClose, (e) => {
+      setSaving(false)
+      setError(e instanceof ApiError ? e.message : 'Не удалось отвязать карту, попробуйте ещё раз')
+    })
+  }
+  return (
+    <Modal title="Отвязать карту?" onClose={onClose}>
+      <p className="modal-text">Карта ·· {card.last4} пропадёт из списка счетов, переводить с неё будет нельзя. Её можно привязать снова.</p>
+      {error && <div className="form-error">{error}</div>}
+      <div className="modal-actions">
+        <button type="button" className="btn-secondary" onClick={onClose}>Отмена</button>
+        <button type="button" className="btn-primary" onClick={confirm} disabled={saving}>{saving ? 'Отвязываем…' : 'Отвязать'}</button>
+      </div>
+    </Modal>
+  )
+}
+
 function CardTile({ card }: { card: Account }) {
   const navigate = useNavigate()
+  const [unlinking, setUnlinking] = useState(false)
   // Все действия по карте ведут на переводы — там карта уже будет в «Списать с», если она по умолчанию
   const toTransfers = () => navigate('/?tab=transfers')
   return (
@@ -53,7 +78,11 @@ function CardTile({ card }: { card: Account }) {
         <ActionButton icon={<Plus size={18} />} onClick={toTransfers}>Пополнить</ActionButton>
         <ActionButton icon={<ArrowRight size={18} />} onClick={toTransfers}>Оплатить</ActionButton>
         <ActionButton icon={<ArrowLeftRight size={18} />} onClick={toTransfers}>Перевести</ActionButton>
+        {card.kind === 'external' && (
+          <ActionButton icon={<Trash2 size={18} />} onClick={() => setUnlinking(true)}>Удалить</ActionButton>
+        )}
       </div>
+      {unlinking && <UnlinkModal card={card} onClose={() => setUnlinking(false)} />}
     </div>
   )
 }
@@ -73,7 +102,7 @@ export default function CardsPage() {
 
       <section className="panel wallet-section">
         <div className="section-head">
-          <h2 className="section-title">Мой кошелёк</h2>
+          <Link to="/wallet" className="section-title section-link">Мой кошелёк <ChevronRight size={24} /></Link>
           {wallet && <DefaultHeart account={wallet} />}
         </div>
         <div className="tiles-2">
