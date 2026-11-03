@@ -18,6 +18,10 @@ export type Operation = {
   currency: Currency
   cashback: number | null
   loyaltyProgram: Loyalty | null
+  counterpartyUserId: string | null
+  mcc: string | null
+  discount: number
+  transactionCode: string | null
 }
 
 export type Category = { code: string; name: string }
@@ -68,6 +72,12 @@ export async function fetchOperations(f: HistoryFilters, cursor: string | null, 
   const res = await fetch(`/api/history/operations?${q}`, { headers: { 'X-User-Id': CURRENT_USER_ID }, signal })
   if (!res.ok) throw new Error(`Ошибка ${res.status}`)
   return res.json() as Promise<{ items: Operation[]; nextCursor: string | null }>
+}
+
+export async function fetchOperation(id: string): Promise<Operation> {
+  const res = await fetch(`/api/history/operations/${id}`, { headers: { 'X-User-Id': CURRENT_USER_ID } })
+  if (!res.ok) throw new Error(res.status === 404 ? 'Операция не найдена' : `Ошибка ${res.status}`)
+  return res.json()
 }
 
 export async function fetchCategories(): Promise<Category[]> {

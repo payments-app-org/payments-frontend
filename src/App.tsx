@@ -4,6 +4,7 @@ import Sidebar from './components/Sidebar'
 import PaymentsPage from './pages/PaymentsPage'
 import HistoryPage from './pages/HistoryPage'
 import CardsPage from './pages/CardsPage'
+import OperationPage from './pages/OperationPage'
 import WalletPage from './pages/wallet/WalletPage'
 import WalletConditionsPage from './pages/wallet/WalletConditionsPage'
 import PhoneTransferPage from './pages/transfers/PhoneTransferPage'
@@ -26,6 +27,7 @@ export default function App() {
             <Route path="/wallet" element={<WalletPage />} />
             <Route path="/wallet/conditions" element={<WalletConditionsPage />} />
             <Route path="/history" element={<HistoryPage />} />
+            <Route path="/history/:id" element={<OperationPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>

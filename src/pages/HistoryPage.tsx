@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { SlidersHorizontal } from 'lucide-react'
-import { useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAccounts } from '../api'
 import CategoryIcon from '../components/CategoryIcon'
 import HistoryFiltersModal from '../components/HistoryFiltersModal'
@@ -37,6 +37,7 @@ export default function HistoryPage() {
   const { accounts } = useAccounts()
   const [categories, setCategories] = useState<Category[]>([])
   const [params] = useSearchParams()
+  const navigate = useNavigate()
   // «Посмотреть все» со страницы кошелька открывает историю уже отфильтрованной по счёту
   const [filters, setFilters] = useState<HistoryFilters>(() => ({ ...EMPTY_FILTERS, accountId: params.get('accountId') }))
   const [modalOpen, setModalOpen] = useState(false)
@@ -102,7 +103,7 @@ export default function HistoryPage() {
         <div key={day} className="day">
           <h3>{day}</h3>
           {ops.map((op) => (
-            <div key={op.id} className="op">
+            <button type="button" key={op.id} className="op op-link" onClick={() => navigate(`/history/${op.id}`)}>
               <CategoryIcon category={op.category} />
               <div className="op-body">
                 <div className="op-title">{op.title}</div>
@@ -116,7 +117,7 @@ export default function HistoryPage() {
                 {op.cashback && op.direction === 'EXPENSE' && <div className="cashback">+{formatMoney(op.cashback, 'RUB')} кешбэк</div>}
                 {op.fee > 0 && <div className="muted">комиссия {formatMoney(op.fee, op.currency)}</div>}
               </div>
-            </div>
+            </button>
           ))}
         </div>
       ))}
