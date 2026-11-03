@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from 'react-router-dom'
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import Header from './components/Header'
 import Sidebar from './components/Sidebar'
 import PaymentsPage from './pages/PaymentsPage'
@@ -14,12 +14,17 @@ import PhoneTransferPage from './pages/transfers/PhoneTransferPage'
 import CardTransferPage from './pages/transfers/CardTransferPage'
 import OwnTransferPage from './pages/transfers/OwnTransferPage'
 
+// Страницы во всю ширину — без левой панели с кошельками и картами
+const FULL_WIDTH = ['/cards']
+
 export default function App() {
+  const { pathname } = useLocation()
+  const fullWidth = FULL_WIDTH.includes(pathname)
   return (
     <>
       <Header />
-      <div className="layout">
-        <Sidebar />
+      <div className={fullWidth ? 'layout full-width' : 'layout'}>
+        {!fullWidth && <Sidebar />}
         <main className="content">
           <Routes>
             <Route path="/" element={<PaymentsPage />} />

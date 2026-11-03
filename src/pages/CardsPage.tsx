@@ -3,7 +3,7 @@ import { ArrowLeftRight, ArrowRight, FileText, Plus, Trash2 } from 'lucide-react
 import { useNavigate } from 'react-router-dom'
 import { ApiError, unlinkCard, useAccounts, useProfile, type Account } from '../api'
 import AddCardModal from '../components/AddCardModal'
-import Breadcrumbs from '../components/Breadcrumbs'
+import { ChevronLeft } from 'lucide-react'
 import DefaultHeart from '../components/DefaultHeart'
 import StatementModal from '../components/StatementModal'
 import Modal from '../components/Modal'
@@ -100,7 +100,9 @@ export default function CardsPage() {
 
   return (
     <>
-      <Breadcrumbs items={[['Главная', '/'], ['Счета и карты']]} />
+      <button type="button" className="back" onClick={() => (history.length > 1 ? navigate(-1) : navigate('/'))}>
+        <ChevronLeft size={18} /> Назад
+      </button>
 
       <section className="panel wallet-section">
         <div className="section-head">
