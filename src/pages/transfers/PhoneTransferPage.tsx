@@ -4,7 +4,7 @@ import {
   AccountSelect, AmountInput, Field, PaymentResult, SubmitButton, Summary, TransferLayout, amountError, parseAmount, totalOf,
 } from '../../components/transfer'
 import BankSelect from '../../components/BankSelect'
-import type { Bank } from '../../data/banks'
+import { banks, type Bank } from '../../data/banks'
 
 const MESSAGE_MAX = 40
 
@@ -17,10 +17,17 @@ function formatPhone(raw: string) {
   return ['+7', d.slice(0, 3), d.slice(3, 6), d.slice(6, 8), d.slice(8, 10)].filter(Boolean).join(' ')
 }
 
+// «Мария Сергеевна И, Сбербанк» — имя знаем, если получатель наш клиент; банк — тот, куда ушёл перевод
+function recipientLabel(phone: string, payment: { recipientName: string | null; recipientBankId: string | null }) {
+  const bankName = banks.find((b) => b.id === payment.recipientBankId)?.name
+  return [payment.recipientName ?? phone, bankName].filter(Boolean).join(', ')
+}
+
 export default function PhoneTransferPage() {
   const { accounts } = useAccounts()
   const [fromId, setFromId] = useState<string | null>(null)
   const [phone, setPhone] = useState('')
+  const [bankText, setBankText] = useState('')
   const [bank, setBank] = useState<Bank | null>(null)
   const [message, setMessage] = useState('')
   const [rawAmount, setRawAmount] = useState('')
@@ -32,7 +39,8 @@ export default function PhoneTransferPage() {
   const commission = useCommission('SBP_PHONE', from?.id, amount, quoteRefresh)
   const amountErr = amountError(totalOf(commission, amount), from)
   const phoneDigits = phone.replace(/\D/g, '')
-  const valid = !!from && phoneDigits.length === 11 && !!bank && commission.status === 'ready' && !amountErr
+  // Банк необязателен: не выбран из списка — payment возьмёт банк по умолчанию получателя
+  const valid = !!from && phoneDigits.length === 11 && commission.status === 'ready' && !amountErr
   const submitting = payment.state.status === 'submitting'
 
   const submit = (e: FormEvent) => {
@@ -42,8 +50,9 @@ export default function PhoneTransferPage() {
       type: 'SBP_PHONE',
       sourceAccountId: from.id,
       recipientPhone: `+${phoneDigits}`,
-      recipientBankId: bank.id,
+      recipientBankId: bank?.id,
       amount,
+      message: message.trim() || undefined,
       quoteToken: commission.data.quoteToken,
     })
   }
@@ -62,7 +71,7 @@ export default function PhoneTransferPage() {
   if (payment.state.status === 'done') {
     return (
       <TransferLayout title="По номеру телефона">
-        <PaymentResult payment={payment.state.payment} to={`${phone}, ${bank?.name}`} onRetry={retry} />
+        <PaymentResult payment={payment.state.payment} to={recipientLabel(phone, payment.state.payment)} onRetry={retry} />
       </TransferLayout>
     )
   }
@@ -78,7 +87,10 @@ export default function PhoneTransferPage() {
         </Field>
         <div className="field">
           <span className="field-label">Банк получателя</span>
-          <BankSelect value={bank} onChange={setBank} />
+          <BankSelect text={bankText} value={bank} onChange={(text, b) => { setBankText(text); setBank(b) }} />
+          {!bank && <span className="field-hint">{bankText.trim()
+            ? 'Такого банка нет в списке — переведём в банк получателя по умолчанию'
+            : 'Не выбран — переведём в банк получателя по умолчанию'}</span>}
         </div>
         <Field label="Сообщение получателю" hint={`${message.length}/${MESSAGE_MAX}`}>
           <input className="input" placeholder="Введите сообщение" maxLength={MESSAGE_MAX} value={message} onChange={(e) => setMessage(e.target.value)} />

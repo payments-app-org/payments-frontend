@@ -13,6 +13,7 @@ export default defineConfig({
       '/api/users': process.env.ACCOUNT_URL ?? 'http://localhost:8081',
       '/api/pricing': process.env.PRICING_URL ?? 'http://localhost:8082',
       '/api/payments': process.env.PAYMENT_URL ?? 'http://localhost:8083',
+      '/api/history': process.env.HISTORY_URL ?? 'http://localhost:8086',
     },
   },
 })

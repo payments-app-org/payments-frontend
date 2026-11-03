@@ -62,7 +62,7 @@ export default function CardTransferPage() {
   if (payment.state.status === 'done') {
     return (
       <TransferLayout title="Перевод по номеру карты">
-        <PaymentResult payment={payment.state.payment} to={`карта ·· ${digits.slice(-4)}`} onRetry={retry} />
+        <PaymentResult payment={payment.state.payment} to={payment.state.payment.recipientName ?? `карта ·· ${digits.slice(-4)}`} onRetry={retry} />
       </TransferLayout>
     )
   }

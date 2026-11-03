@@ -90,10 +90,35 @@ h3 { font-size: 18px; margin: 0; font-weight: 600; }
 .day:last-child { border-bottom: 0; }
 .day h3 { margin-bottom: 20px; }
 .op { display: flex; gap: 12px; align-items: flex-start; padding: 8px 0; }
+.op .avatar { color: #fff; }
 .op-body { flex: 1; display: flex; flex-direction: column; gap: 2px; align-items: flex-start; }
 .op-title { font-weight: 600; }
 .tag { margin-top: 8px; }
 .amount { white-space: nowrap; }
+.op-amounts { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; text-align: right; }
+.cashback { font-size: 13px; color: var(--green); }
+.filters-count { background: var(--dark); color: #fff; border-radius: 999px; font-size: 11px; min-width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center; padding: 0 5px; }
+.history-empty { padding: 32px 0; text-align: center; }
+.link-btn { color: var(--accent); font-weight: 600; }
+.modal-backdrop { position: fixed; inset: 0; background: rgba(17, 18, 20, .45); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
+.modal { background: var(--panel); border-radius: var(--radius); width: 100%; max-width: 640px; max-height: calc(100vh - 32px); display: flex; flex-direction: column; }
+.modal-head { display: flex; justify-content: space-between; align-items: center; padding: 24px 28px 8px; }
+.modal-head h2 { margin: 0; }
+.modal-body { overflow-y: auto; padding: 8px 28px 16px; }
+.modal-foot { display: flex; justify-content: space-between; gap: 12px; padding: 16px 28px 24px; border-top: 1px solid var(--line); }
+.modal-foot .btn-primary { align-self: auto; }
+.icon-btn { width: 36px; height: 36px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; }
+.icon-btn:hover { background: var(--soft); }
+.btn-secondary { height: 52px; padding: 0 28px; border-radius: 8px; background: var(--soft); font-weight: 600; font-size: 16px; }
+.filter-section { padding: 16px 0; border-bottom: 1px solid var(--line); }
+.filter-section:last-child { border-bottom: 0; }
+.filter-section h3 { font-size: 16px; margin-bottom: 12px; }
+.filter-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.filter-chip { padding: 8px 14px; border-radius: 999px; background: var(--soft); font-size: 14px; font-weight: 500; }
+.filter-chip.active { background: var(--dark); color: #fff; }
+.period-inputs { display: flex; gap: 12px; padding: 0 0 16px; border-bottom: 1px solid var(--line); }
+.period-inputs label { flex: 1; display: flex; align-items: center; gap: 8px; font-size: 14px; }
+.period-inputs .input { height: 44px; }
 .amount.income { color: var(--green); }
 
 .transfer { padding: 0; }

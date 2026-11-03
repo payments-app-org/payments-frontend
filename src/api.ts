@@ -47,6 +47,8 @@ export type Payment = {
   amount: number
   commission: number
   total: number
+  recipientName: string | null
+  recipientBankId: string | null
   failureCode: string | null
   message: string
 }
@@ -155,6 +157,7 @@ export type PaymentRequest = {
   recipientCardNumber?: string
   amount: number
   quoteToken: string
+  message?: string
 }
 
 export type SubmitState =

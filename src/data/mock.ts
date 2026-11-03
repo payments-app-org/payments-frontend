@@ -37,35 +37,3 @@ export const documents = [
   'Переводы за рубеж',
   'Тарифы за переводы',
 ]
-
-export type Operation = {
-  id: number
-  date: string
-  title: string
-  subtitle: string
-  amount: number
-  tag?: string
-  avatar: { letter: string; color: string }
-}
-
-const bankA = { letter: 'М', color: '#e0312b' }
-const bankB = { letter: 'Т', color: '#f5d33c' }
-const bankC = { letter: 'С', color: '#1f3fae' }
-const yota = { letter: 'Y', color: '#3fb6e8' }
-const grey = { letter: '…', color: '#7884a8' }
-
-export const operations: Operation[] = [
-  { id: 1, date: '01 ноября', title: 'Артур Константинович Р', subtitle: 'Переводы через СБП', amount: 10, tag: 'Другое', avatar: bankA },
-  { id: 2, date: '01 ноября', title: 'Артур Константинович Р', subtitle: 'Переводы через СБП', amount: -10, tag: 'Другое', avatar: bankA },
-  { id: 3, date: '30 октября', title: 'Артур Константинович Р', subtitle: 'Переводы через СБП', amount: 10, tag: 'Перевод СБП', avatar: bankB },
-  { id: 4, date: '29 октября', title: 'Артур Константинович Р', subtitle: 'Переводы через СБП', amount: -10, tag: '5', avatar: bankB },
-  { id: 5, date: '27 октября', title: 'Артур Константинович Р', subtitle: 'Переводы через СБП', amount: -10, tag: 'Перевод СБП', avatar: bankB },
-  { id: 6, date: '27 октября', title: 'Yota', subtitle: 'Мобильная связь', amount: -10, avatar: yota },
-  { id: 7, date: '27 октября', title: 'Перевод с карты', subtitle: 'Переводы', amount: -10, avatar: bankA },
-  { id: 8, date: '26 октября', title: 'Прочее', subtitle: 'Переводы', amount: -60, avatar: grey },
-  { id: 9, date: '26 октября', title: 'Перевод с карты', subtitle: 'Переводы', amount: 50, avatar: bankC },
-  { id: 10, date: '26 октября', title: 'Перевод с карты', subtitle: 'Переводы', amount: 10, avatar: bankC },
-  { id: 11, date: '16 октября', title: 'Кешбэк', subtitle: 'Вознаграждение', amount: 273, avatar: { letter: '%', color: '#7884a8' } },
-  { id: 12, date: '07 октября', title: 'Артур Константинович Р', subtitle: 'Переводы через СБП', amount: -1871.07, tag: 'Перевод СБП', avatar: bankB },
-  { id: 13, date: '07 октября', title: 'MSKAPT1092', subtitle: 'Аптеки', amount: -338, avatar: { letter: '+', color: '#3b8ef0' } },
-]
