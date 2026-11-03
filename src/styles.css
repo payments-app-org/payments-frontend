@@ -120,6 +120,10 @@ h3 { font-size: 18px; margin: 0; font-weight: 600; }
 .success h2 { margin: 16px 0 8px; }
 .success p { margin: 0 0 28px; }
 .success-icon { color: var(--green); }
+.success .btn-primary.link { border: 0; }
+.form-error { background: #fdecea; color: var(--red); border-radius: 8px; padding: 14px 16px; font-size: 14px; }
+.spin { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
 
 @media (max-width: 1000px) {
   .layout { grid-template-columns: 1fr; gap: 24px; padding: 24px 16px; }

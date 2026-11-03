@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { ChevronDown, ChevronLeft, CircleCheck, Wallet } from 'lucide-react'
+import { ChevronDown, ChevronLeft, CircleCheck, CircleX, LoaderCircle, Wallet } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import type { Account, CommissionState } from '../api'
+import type { Account, CommissionState, Payment } from '../api'
 import { formatRub } from '../format'
 
 // Общие куски форм переводов: каркас страницы, выбор счёта, сумма, итог
@@ -145,6 +145,37 @@ export function Success({ amount, to }: { amount: number; to: string }) {
       <h2>Перевод отправлен</h2>
       <p className="muted-text">{formatRub(amount)} · {to}</p>
       <Link to="/?tab=transfers" className="btn-primary link">Вернуться к переводам</Link>
+    </div>
+  )
+}
+
+// Итог платежа из сервиса payment: успех, отказ или «ещё обрабатывается»
+export function PaymentResult({ payment, to, onRetry }: { payment: Payment; to: string; onRetry: () => void }) {
+  if (payment.status === 'SUCCESS') {
+    return (
+      <div className="success">
+        <CircleCheck size={56} strokeWidth={1.5} className="success-icon" />
+        <h2>Перевод выполнен</h2>
+        <p className="muted-text">{formatRub(payment.amount)} · {to}<br />Комиссия {formatRub(payment.commission)}, списано {formatRub(payment.total)}</p>
+        <Link to="/?tab=transfers" className="btn-primary link">Вернуться к переводам</Link>
+      </div>
+    )
+  }
+  if (payment.status === 'FAILED' || payment.status === 'COMPENSATING') {
+    return (
+      <div className="success">
+        <CircleX size={56} strokeWidth={1.5} className="error-text" />
+        <h2>Перевод не выполнен</h2>
+        <p className="muted-text">{payment.message}</p>
+        <button type="button" className="btn-primary link" onClick={onRetry}>Попробовать снова</button>
+      </div>
+    )
+  }
+  return (
+    <div className="success">
+      <LoaderCircle size={56} strokeWidth={1.5} className="muted spin" />
+      <h2>Перевод обрабатывается</h2>
+      <p className="muted-text">Это может занять немного времени. Статус обновится сам.</p>
     </div>
   )
 }

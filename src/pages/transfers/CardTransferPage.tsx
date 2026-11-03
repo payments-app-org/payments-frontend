@@ -1,7 +1,7 @@
-import { useState, type FormEvent } from 'react'
-import { defaultSource, useAccounts, useCommission } from '../../api'
+import { useEffect, useState, type FormEvent } from 'react'
+import { defaultSource, useAccounts, useCommission, usePaymentSubmit } from '../../api'
 import {
-  AccountSelect, AmountInput, Field, SubmitButton, Success, Summary, TransferLayout, amountError, parseAmount, totalOf,
+  AccountSelect, AmountInput, Field, PaymentResult, SubmitButton, Summary, TransferLayout, amountError, parseAmount, totalOf,
 } from '../../components/transfer'
 
 function formatCard(raw: string) {
@@ -24,42 +24,69 @@ export default function CardTransferPage() {
   const [fromId, setFromId] = useState<string | null>(null)
   const [cardNumber, setCardNumber] = useState('')
   const [rawAmount, setRawAmount] = useState('')
-  const [done, setDone] = useState(false)
+  const [quoteRefresh, setQuoteRefresh] = useState(0)
+  const payment = usePaymentSubmit()
 
   const digits = cardNumber.replace(/\D/g, '')
   const cardErr = digits.length === 16 && !luhn(digits) ? 'Проверьте номер карты' : undefined
   const from = accounts?.find((a) => a.id === fromId) ?? defaultSource(accounts)
   const amount = parseAmount(rawAmount)
-  const commission = useCommission('CARD_TRANSFER', amount)
+  const commission = useCommission('CARD2CARD', from?.id, amount, quoteRefresh)
   const amountErr = amountError(totalOf(commission, amount), from)
   const valid = !!from && digits.length === 16 && !cardErr && commission.status === 'ready' && !amountErr
+  const submitting = payment.state.status === 'submitting'
 
   const submit = (e: FormEvent) => {
     e.preventDefault()
-    if (valid) setDone(true)
+    if (!valid || submitting || commission.status !== 'ready') return
+    payment.submit({
+      type: 'CARD2CARD',
+      sourceAccountId: from.id,
+      recipientCardNumber: digits,
+      amount,
+      quoteToken: commission.data.quoteToken,
+    })
+  }
+
+  // Котировка истекла или уже использована — молча берём новую, пользователь нажмёт ещё раз
+  useEffect(() => {
+    if (payment.state.status === 'rejected' && payment.state.code?.startsWith('QUOTE')) setQuoteRefresh((n) => n + 1)
+  }, [payment.state])
+
+  // Котировка одноразовая: после попытки платежа берём новую
+  const retry = () => {
+    payment.reset()
+    setQuoteRefresh((n) => n + 1)
+  }
+
+  if (payment.state.status === 'done') {
+    return (
+      <TransferLayout title="Перевод по номеру карты">
+        <PaymentResult payment={payment.state.payment} to={`карта ·· ${digits.slice(-4)}`} onRetry={retry} />
+      </TransferLayout>
+    )
   }
 
   return (
     <TransferLayout title="Перевод по номеру карты">
-      {done ? <Success amount={amount} to={`карта ·· ${digits.slice(-4)}`} /> : (
-        <form className="form" onSubmit={submit}>
-          <div className="group">
-            <h3>Списать с</h3>
-            <AccountSelect accounts={accounts ?? []} value={from} onChange={(a) => setFromId(a.id)} placeholder="Загружаем счета…" />
-          </div>
-          <div className="group">
-            <h3>Карта получателя</h3>
-            <Field label="Номер карты" error={cardErr}>
-              <input className="input" inputMode="numeric" placeholder="1234 4567 8901 2345" value={cardNumber} onChange={(e) => setCardNumber(formatCard(e.target.value))} />
-            </Field>
-          </div>
-          <Field label="Сумма перевода" error={amountErr}>
-            <AmountInput value={rawAmount} onChange={setRawAmount} />
+      <form className="form" onSubmit={submit}>
+        <div className="group">
+          <h3>Списать с</h3>
+          <AccountSelect accounts={accounts ?? []} value={from} onChange={(a) => setFromId(a.id)} placeholder="Загружаем счета…" />
+        </div>
+        <div className="group">
+          <h3>Карта получателя</h3>
+          <Field label="Номер карты" error={cardErr}>
+            <input className="input" inputMode="numeric" placeholder="1234 4567 8901 2345" value={cardNumber} onChange={(e) => setCardNumber(formatCard(e.target.value))} />
           </Field>
-          <Summary state={commission} />
-          <SubmitButton disabled={!valid}>Перевести</SubmitButton>
-        </form>
-      )}
+        </div>
+        <Field label="Сумма перевода" error={amountErr}>
+          <AmountInput value={rawAmount} onChange={setRawAmount} />
+        </Field>
+        <Summary state={commission} />
+        {payment.state.status === 'rejected' && <div className="form-error">{payment.state.message}</div>}
+        <SubmitButton disabled={!valid || submitting}>{submitting ? 'Переводим…' : 'Перевести'}</SubmitButton>
+      </form>
     </TransferLayout>
   )
 }

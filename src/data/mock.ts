@@ -1,7 +1,5 @@
 // Моковые данные — то, что ещё не переехало в бэкенд
 
-export const banks = ['Сбербанк', 'Т-Банк', 'Альфа-Банк', 'ВТБ', 'Газпромбанк', 'Райффайзенбанк', 'МТС Банк', 'Озон Банк']
-
 export const templates = [{ id: 'yota', name: 'Yota', color: '#3fb6e8' }]
 
 export const paymentCategories = [

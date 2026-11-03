@@ -12,7 +12,7 @@ export default function OwnTransferPage() {
   const [done, setDone] = useState(false)
 
   const amount = parseAmount(rawAmount)
-  const commission = useCommission('OWN_TRANSFER', amount)
+  const commission = useCommission('OWN_TRANSFER', from?.id, amount)
   const amountErr = amountError(totalOf(commission, amount), from)
   const valid = !!from && !!to && from.id !== to.id && commission.status === 'ready' && !amountErr
 
