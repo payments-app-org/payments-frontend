@@ -7,6 +7,8 @@ import CardsPage from './pages/CardsPage'
 import OperationPage from './pages/OperationPage'
 import WalletPage from './pages/wallet/WalletPage'
 import WalletConditionsPage from './pages/wallet/WalletConditionsPage'
+import WalletTopUpPage from './pages/wallet/WalletTopUpPage'
+import WalletTransferPage from './pages/wallet/WalletTransferPage'
 import PhoneTransferPage from './pages/transfers/PhoneTransferPage'
 import CardTransferPage from './pages/transfers/CardTransferPage'
 import OwnTransferPage from './pages/transfers/OwnTransferPage'
@@ -26,6 +28,8 @@ export default function App() {
             <Route path="/cards" element={<CardsPage />} />
             <Route path="/wallet" element={<WalletPage />} />
             <Route path="/wallet/conditions" element={<WalletConditionsPage />} />
+            <Route path="/wallet/topup" element={<WalletTopUpPage />} />
+            <Route path="/wallet/transfer" element={<WalletTransferPage />} />
             <Route path="/history" element={<HistoryPage />} />
             <Route path="/history/:id" element={<OperationPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />

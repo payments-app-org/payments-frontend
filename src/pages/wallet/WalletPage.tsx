@@ -74,8 +74,8 @@ export default function WalletPage() {
         <div className="wallet-phone">{profile ? formatPhone(profile.phone) : ' '}</div>
         <div className="wallet-art"><Wallet size={120} strokeWidth={1.2} /></div>
         <div className="wallet-actions">
-          <button type="button" onClick={() => navigate('/transfers/own?to=wallet')}><Plus size={20} />Пополнить</button>
-          <button type="button" onClick={() => navigate('/?tab=transfers')}><ArrowUp size={20} />Перевести</button>
+          <button type="button" onClick={() => navigate('/wallet/topup')}><Plus size={20} />Пополнить</button>
+          <button type="button" onClick={() => navigate('/wallet/transfer')}><ArrowUp size={20} />Перевести</button>
         </div>
       </section>
 

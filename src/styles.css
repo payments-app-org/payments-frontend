@@ -50,7 +50,15 @@ h3 { font-size: 18px; margin: 0; font-weight: 600; }
 .mc-yellow { background: #f79e1b; margin-left: -5px; opacity: .9; }
 .collapse-btn { width: 100%; text-align: left; }
 .collapsible.collapsed .panel-head { margin-bottom: 0; }
-.cards-list { display: flex; flex-direction: column; margin-top: -8px; }
+.cards-list { display: flex; flex-direction: column; margin-top: -6px; }
+/* Строки карт в левой панели: кликабельные, с подсветкой и тонким разделителем между ними */
+.cards-list .card-row { margin: 0 -12px; padding: 12px; border-radius: 12px; position: relative; align-items: center; }
+.cards-list .card-row + .card-row { border-top: 0; }
+.cards-list .card-row + .card-row::before { content: ''; position: absolute; top: 0; left: 12px; right: 12px; height: 1px; background: var(--line); }
+.cards-list .card-row:hover::before, .cards-list .card-row:hover + .card-row::before { opacity: 0; }
+.cards-list .card-info { display: flex; flex-direction: column; gap: 4px; }
+.cards-list .card-info .balance { margin-top: 0; }
+.cards-list .card-meta { gap: 6px; }
 .sidebar-link { color: inherit; text-decoration: none; border-radius: 12px; margin: -8px; padding: 8px; }
 .sidebar-link:hover { background: var(--soft); }
 .card-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 0; }
@@ -289,6 +297,89 @@ h3 { font-size: 18px; margin: 0; font-weight: 600; }
 .receipt-stamp b { font-size: 15px; letter-spacing: .04em; }
 .receipt-stamp small { font-size: 10px; font-weight: 600; }
 .modal:has(.receipt) { max-width: 560px; }
+
+.wallet-form { padding: 0; }
+.wallet-form-head { display: flex; align-items: center; gap: 20px; padding: 32px; border-bottom: 1px solid var(--line); }
+.wallet-form-head h1 { margin: 0; font-size: 32px; }
+.wallet-form-body { display: flex; flex-direction: column; gap: 16px; padding: 24px 32px 32px; }
+.acc-tile { width: 44px; height: 44px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+  background: #d52b1e; color: #fff; }
+.acc-tile.big { width: 80px; height: 80px; border-radius: 20px; }
+.acc-tile.wallet { background: #3b82f6; }
+.acc-tile.mastercard { background: #2b2d42; }
+.acc-tile.visa { background: #1a1f71; }
+.acc-tile.external { background: #868e96; }
+.acc-tile.empty { background: #fff; color: #9a9da6; }
+.wallet-form-head .acc-tile.empty { background: var(--soft); }
+.acc-tile .card-badge { background: transparent; color: #fff; padding: 0; min-width: 0; font-size: 10px; }
+.picker { width: 100%; min-height: 64px; display: flex; align-items: center; gap: 12px; padding: 10px 16px 10px 12px; border-radius: 16px;
+  background: var(--soft); border: 1px solid #dfe1e6; text-align: left; }
+.picker:not(.fixed):hover { border-color: #c3c6ce; }
+.picker-placeholder { flex: 1; color: #6b6e77; font-size: 16px; }
+.acc-line { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.acc-line-sub { font-size: 13px; color: #6b6e77; }
+.acc-line-main { font-size: 17px; }
+.picker-list { display: flex; flex-direction: column; gap: 4px; padding-bottom: 12px; }
+.picker-option { display: flex; align-items: center; gap: 16px; padding: 8px; border-radius: 12px; text-align: left; }
+.picker-option:hover { background: var(--soft); }
+.picker-option .acc-tile { width: 52px; height: 52px; border-radius: 14px; }
+.picker-option .acc-tile.empty { background: var(--soft); }
+.float-field { position: relative; display: flex; flex-direction: column; gap: 6px; }
+.float-field .float-label { position: absolute; left: 13px; top: 21px; color: #6b6e77; font-size: 16px; pointer-events: none; transition: all .12s; }
+.float-field .float-label.up, .float-field:focus-within .float-label { top: 10px; font-size: 12px; }
+.float-value { display: flex; align-items: center; gap: 2px; height: 64px; padding: 22px 12px 0; border-radius: 16px; background: var(--soft);
+  border: 1px solid #dfe1e6; font-size: 18px; }
+.float-field:focus-within .float-value { border-color: #3b82f6; }
+.float-field.invalid .float-value { border-color: var(--red); }
+.float-value input { border: 0; outline: 0; background: transparent; font: inherit; flex: 1; min-width: 0; }
+.btn-big { height: 72px; border-radius: 20px; background: linear-gradient(110deg, #ea3a3d 0%, #ee5b67 100%); color: #fff; font-weight: 800;
+  font-size: 15px; letter-spacing: .06em; text-transform: uppercase; margin-top: 8px; }
+.btn-big:disabled { background: var(--soft); color: #9a9da6; cursor: default; }
+
+.statement-form { display: flex; flex-direction: column; gap: 10px; padding-bottom: 24px; }
+.modal-footer-bar { display: flex; justify-content: flex-end; gap: 12px; margin: 0 -28px -16px; padding: 16px 28px 20px; background: var(--soft);
+  border-radius: 0 0 var(--radius) var(--radius); }
+.modal-footer-bar .btn-primary { align-self: auto; }
+.modal-footer-bar .btn-secondary { background: #e4e6eb; }
+.date-range { position: relative; }
+/* Календарь выпадает за пределы окна — прокрутку тела модалки здесь отключаем */
+.modal:has(.date-range) .modal-body { overflow: visible; }
+.date-range-input { display: flex; align-items: center; justify-content: space-between; cursor: pointer; text-align: left; }
+.calendar { position: absolute; z-index: 30; top: calc(100% + 8px); left: 0; width: 288px; background: #fff; border-radius: 12px;
+  box-shadow: 0 8px 28px rgba(0,0,0,.14); padding: 16px; }
+.calendar-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-weight: 600; }
+.calendar-head b { color: #3b82f6; }
+.calendar-head .icon-btn:disabled { opacity: .3; }
+.calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.calendar-weekday { font-size: 11px; color: var(--muted); text-align: center; padding: 6px 0; text-transform: uppercase; }
+.calendar-day { height: 34px; border-radius: 8px; font-size: 15px; }
+.calendar-day:hover:not(:disabled) { background: var(--soft); }
+.calendar-day.other { color: #9a9da6; }
+.calendar-day.today { color: var(--red); }
+.calendar-day.in-range { background: #e8efff; border-radius: 0; }
+.calendar-day.edge { background: #3b82f6; color: #fff; }
+.calendar-day:disabled { color: #c7c9cf; cursor: default; }
+.offscreen { position: fixed; left: -10000px; top: 0; }
+/* html2canvas при нулевом межбуквенном интервале расставляет текст по словам и теряет часть пробелов;
+   с ненулевым — ставит каждую букву по её месту, и пробелы сохраняются */
+.statement, .receipt { letter-spacing: 0.1px; }
+.statement { width: 1000px; background: #fff; color: var(--text); padding: 24px 28px 40px; }
+.statement-top { display: flex; justify-content: space-between; align-items: center; font-size: 22px; }
+.statement-logo { display: flex; align-items: center; gap: 14px; font-size: 30px; font-weight: 600; letter-spacing: .01em; }
+.statement-logo span { width: 56px; height: 56px; background: #ea3a3d; color: #fff; font-size: 17px; font-weight: 800; display: inline-flex;
+  align-items: flex-end; justify-content: flex-end; padding: 5px; }
+.statement h1 { font-size: 34px; margin: 60px 0 8px; }
+.statement h2 { font-size: 34px; margin: 56px 0 8px; }
+.statement-period { color: #6b6e77; font-size: 22px; }
+.statement-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px 24px; margin-top: 44px; font-size: 19px; }
+.statement-grid > div { display: flex; flex-direction: column; gap: 14px; align-items: flex-start; }
+.statement-grid span { color: #6b6e77; }
+.statement-chip { color: var(--text) !important; font-weight: 600; font-size: 18px; padding: 6px 12px; }
+.statement-table { width: 100%; border-collapse: collapse; margin-top: 44px; font-size: 19px; }
+.statement-table th { background: var(--soft); color: #6b6e77; font-weight: 400; text-align: left; padding: 22px 20px; border-right: 2px solid #fff; }
+.statement-table td { padding: 18px 20px; border-bottom: 2px solid var(--line); vertical-align: middle; }
+.statement-table td small { display: block; color: #6b6e77; font-size: 15px; margin-top: 2px; }
+.statement-table .muted-cell { color: #6b6e77; }
 
 @media (max-width: 1000px) {
   .layout { grid-template-columns: 1fr; gap: 24px; padding: 24px 16px; }

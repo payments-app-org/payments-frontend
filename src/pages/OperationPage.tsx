@@ -7,6 +7,7 @@ import Modal from '../components/Modal'
 import Receipt, { type ReceiptRow } from '../components/Receipt'
 import { formatMoney } from '../format'
 import { fetchOperation, type Operation } from '../history'
+import { saveElementAsPdf } from '../pdf'
 
 const dateLong = new Intl.DateTimeFormat('ru-RU', {
   day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Moscow',
@@ -34,19 +35,6 @@ function detailRows(op: Operation, accountTitle: string | null): ReceiptRow[] {
   return rows
 }
 
-// PDF собираем в браузере: снимок бланка чека → страница A5. Библиотеки грузим только по нажатию.
-async function downloadPdf(el: HTMLElement, fileName: string) {
-  const [{ jsPDF }, { default: html2canvas }] = await Promise.all([import('jspdf'), import('html2canvas')])
-  const canvas = await html2canvas(el, { scale: 2, backgroundColor: '#ffffff' })
-  const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a5' })
-  const margin = 10
-  const width = pdf.internal.pageSize.getWidth() - margin * 2
-  const height = (canvas.height * width) / canvas.width
-  // JPEG: чек весит ~100 КБ вместо пары мегабайт в PNG
-  pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', margin, margin, width, height)
-  pdf.save(fileName)
-}
-
 function ReceiptModal({ op, rows, onClose }: { op: Operation; rows: ReceiptRow[]; onClose: () => void }) {
   const ref = useRef<HTMLDivElement>(null)
   const [saving, setSaving] = useState(false)
@@ -55,7 +43,7 @@ function ReceiptModal({ op, rows, onClose }: { op: Operation; rows: ReceiptRow[]
     if (!ref.current) return
     setSaving(true)
     setError(false)
-    downloadPdf(ref.current, `chek-${op.transactionCode ?? op.id}.pdf`)
+    saveElementAsPdf(ref.current, `chek-${op.transactionCode ?? op.id}.pdf`, 'a5')
       .catch(() => setError(true))
       .finally(() => setSaving(false))
   }

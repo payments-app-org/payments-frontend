@@ -154,14 +154,19 @@ export function Success({ amount, to }: { amount: number; to: string }) {
 }
 
 // Итог платежа из сервиса payment: успех, отказ или «ещё обрабатывается»
-export function PaymentResult({ payment, to, onRetry }: { payment: Payment; to: string; onRetry: () => void }) {
+export function PaymentResult({ payment, to, onRetry, back = ['/?tab=transfers', 'Вернуться к переводам'] }: {
+  payment: Payment
+  to: string
+  onRetry: () => void
+  back?: [string, string]
+}) {
   if (payment.status === 'SUCCESS') {
     return (
       <div className="success">
         <CircleCheck size={56} strokeWidth={1.5} className="success-icon" />
         <h2>Перевод выполнен</h2>
         <p className="muted-text">{formatRub(payment.amount)} · {to}<br />Комиссия {formatRub(payment.commission)}, списано {formatRub(payment.total)}</p>
-        <Link to="/?tab=transfers" className="btn-primary link">Вернуться к переводам</Link>
+        <Link to={back[0]} className="btn-primary link">{back[1]}</Link>
       </div>
     )
   }

@@ -23,6 +23,9 @@ export type Account = {
   cardExpiry: string | null
   isDefault: boolean
   defaultForPayments: boolean
+  // Номер счёта (20 цифр) и дата открытия — для справки; у карт других банков номера нет
+  accountNumber: string | null
+  openedAt: string | null
   limits: AccountLimits | null
 }
 
@@ -36,6 +39,8 @@ type ApiAccount = {
   cardExpiry: string | null
   isDefault: boolean
   defaultForPayments: boolean
+  accountNumber: string | null
+  openedAt: string | null
   limits: AccountLimits | null
 }
 
@@ -87,6 +92,7 @@ function toAccount(a: ApiAccount): Account {
   const base = {
     id: a.id, name: a.title, last4: a.cardLast4, paymentSystem: a.paymentSystem, balance: a.available,
     cardExpiry: a.cardExpiry, isDefault: a.isDefault, defaultForPayments: a.defaultForPayments, limits: a.limits,
+    accountNumber: a.accountNumber, openedAt: a.openedAt,
   }
   if (a.type === 'WALLET') return { ...base, kind: 'wallet', title: a.title }
   return { ...base, kind: a.type === 'CARD' ? 'card' : 'external', title: `${a.title} ·· ${a.cardLast4}` }

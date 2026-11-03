@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { CircleHelp } from 'lucide-react'
-import { ApiError, linkCard } from '../api'
+import { ApiError, linkCard, type Account } from '../api'
 import Modal from './Modal'
 
 const formatCard = (raw: string) => raw.replace(/\D/g, '').slice(0, 19).replace(/(\d{4})(?=\d)/g, '$1 ')
@@ -12,7 +12,7 @@ function formatExpiry(raw: string) {
 }
 
 // Привязка карты другого банка. CVC уходит на сервер только для проверки и не сохраняется.
-export default function AddCardModal({ onClose }: { onClose: () => void }) {
+export default function AddCardModal({ onClose, onAdded }: { onClose: () => void; onAdded?: (card: Account) => void }) {
   const [number, setNumber] = useState('')
   const [expiry, setExpiry] = useState('')
   const [cvc, setCvc] = useState('')
@@ -28,7 +28,7 @@ export default function AddCardModal({ onClose }: { onClose: () => void }) {
     setSaving(true)
     setError(null)
     linkCard(digits, expiry, cvc).then(
-      () => onClose(),
+      (card) => { onAdded?.(card); onClose() },
       (err) => {
         setSaving(false)
         setError(err instanceof ApiError ? err.message : 'Не удалось привязать карту, попробуйте ещё раз')

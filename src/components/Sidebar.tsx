@@ -50,7 +50,7 @@ export default function Sidebar() {
     <aside className="sidebar">
       <Collapsible id="wallets" title="Кошельки">
         {wallet ? (
-          <Link to="/cards" className="row sidebar-link">
+          <Link to="/wallet" className="row sidebar-link">
             <div>
               <div className="small">{wallet.name}</div>
               <div className="balance">{formatRub(wallet.balance ?? 0)}</div>

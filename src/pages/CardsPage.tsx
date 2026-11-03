@@ -1,10 +1,11 @@
 import { useState, type ReactNode } from 'react'
-import { ArrowLeftRight, ArrowRight, ChevronRight, FileText, Plus, Trash2 } from 'lucide-react'
-import { Link, useNavigate } from 'react-router-dom'
+import { ArrowLeftRight, ArrowRight, FileText, Plus, Trash2 } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { ApiError, unlinkCard, useAccounts, useProfile, type Account } from '../api'
 import AddCardModal from '../components/AddCardModal'
 import Breadcrumbs from '../components/Breadcrumbs'
 import DefaultHeart from '../components/DefaultHeart'
+import StatementModal from '../components/StatementModal'
 import Modal from '../components/Modal'
 import PaymentSystemBadge from '../components/PaymentSystemBadge'
 import { formatRub } from '../format'
@@ -93,6 +94,7 @@ export default function CardsPage() {
   const profile = useProfile()
   const navigate = useNavigate()
   const [adding, setAdding] = useState(false)
+  const [statement, setStatement] = useState(false)
   const wallet = accounts?.find((a) => a.kind === 'wallet')
   const cards = accounts?.filter((a) => a.kind !== 'wallet') ?? []
 
@@ -102,7 +104,7 @@ export default function CardsPage() {
 
       <section className="panel wallet-section">
         <div className="section-head">
-          <Link to="/wallet" className="section-title section-link">Мой кошелёк <ChevronRight size={24} /></Link>
+          <h2 className="section-title">Мой кошелёк</h2>
           {wallet && <DefaultHeart account={wallet} />}
         </div>
         <div className="tiles-2">
@@ -117,10 +119,10 @@ export default function CardsPage() {
           </div>
         </div>
         <div className="actions">
-          <ActionButton icon={<Plus size={18} />} onClick={() => navigate('/transfers/own?to=wallet')}>Пополнить</ActionButton>
+          <ActionButton icon={<Plus size={18} />} onClick={() => navigate('/wallet/topup')}>Пополнить</ActionButton>
           <ActionButton icon={<ArrowRight size={18} />} onClick={() => navigate('/')}>Оплатить</ActionButton>
-          <ActionButton icon={<ArrowLeftRight size={18} />} onClick={() => navigate('/?tab=transfers')}>Перевести</ActionButton>
-          <ActionButton icon={<FileText size={18} />} disabled hint="Скоро">Справка по счёту</ActionButton>
+          <ActionButton icon={<ArrowLeftRight size={18} />} onClick={() => navigate('/wallet/transfer')}>Перевести</ActionButton>
+          <ActionButton icon={<FileText size={18} />} onClick={() => setStatement(true)} disabled={!wallet || !profile}>Справка по счёту</ActionButton>
         </div>
       </section>
 
@@ -136,6 +138,7 @@ export default function CardsPage() {
       </section>
 
       {adding && <AddCardModal onClose={() => setAdding(false)} />}
+      {statement && wallet && profile && <StatementModal account={wallet} profile={profile} onClose={() => setStatement(false)} />}
     </>
   )
 }
