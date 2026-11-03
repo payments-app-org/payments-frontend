@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAccounts } from '../api'
 import CategoryIcon from '../components/CategoryIcon'
 import HistoryFiltersModal from '../components/HistoryFiltersModal'
+import MonthTotals from '../components/MonthTotals'
 import { formatMoney } from '../format'
 import {
   EMPTY_FILTERS, HISTORY_TIME_ZONE, activeFiltersCount, fetchCategories, fetchOperations, type Category, type HistoryFilters, type Operation,
@@ -91,6 +92,8 @@ export default function HistoryPage() {
   const filtersCount = activeFiltersCount(filters)
 
   return (
+    <>
+    <MonthTotals />
     <section className="panel history">
       <h1>История</h1>
       <div className="filters-row">
@@ -142,5 +145,6 @@ export default function HistoryPage() {
         />
       )}
     </section>
+    </>
   )
 }

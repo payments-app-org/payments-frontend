@@ -35,10 +35,12 @@ export type HistoryFilters = {
   categories: string[]
   loyalty: Loyalty[]
   currencies: Currency[]
+  // Магазин / контрагент — второй уровень «провала» в аналитике
+  title?: string | null
 }
 
 export const EMPTY_FILTERS: HistoryFilters = {
-  accountId: null, period: 'all', from: '', to: '', direction: null, categories: [], loyalty: [], currencies: [],
+  accountId: null, period: 'all', from: '', to: '', direction: null, categories: [], loyalty: [], currencies: [], title: null,
 }
 
 export function activeFiltersCount(f: HistoryFilters) {
@@ -68,6 +70,7 @@ export async function fetchOperations(f: HistoryFilters, cursor: string | null, 
   f.categories.forEach((c) => q.append('category', c))
   f.loyalty.forEach((l) => q.append('loyalty', l))
   f.currencies.forEach((c) => q.append('currency', c))
+  if (f.title) q.set('title', f.title)
   if (cursor) q.set('cursor', cursor)
   const res = await fetch(`/api/history/operations?${q}`, { headers: { 'X-User-Id': CURRENT_USER_ID }, signal })
   if (!res.ok) throw new Error(`Ошибка ${res.status}`)
@@ -78,6 +81,40 @@ export async function fetchOperation(id: string): Promise<Operation> {
   const res = await fetch(`/api/history/operations/${id}`, { headers: { 'X-User-Id': CURRENT_USER_ID } })
   if (!res.ok) throw new Error(res.status === 404 ? 'Операция не найдена' : `Ошибка ${res.status}`)
   return res.json()
+}
+
+export type SummaryGroup = { key: string; name: string; total: number; count: number }
+export type Summary = {
+  month: string
+  direction: Direction
+  category: string | null
+  total: number
+  count: number
+  groups: SummaryGroup[]
+  previousMonth: string
+  nextMonth: string
+}
+
+// Итог за месяц и разбивка: по категориям, а внутри категории — по магазинам/контрагентам
+export async function fetchSummary(month: string, direction: Direction, category?: string | null, title?: string | null): Promise<Summary> {
+  const q = new URLSearchParams({ month, direction })
+  if (category) q.set('category', category)
+  if (title) q.set('title', title)
+  const res = await fetch(`/api/history/summary?${q}`, { headers: { 'X-User-Id': CURRENT_USER_ID } })
+  if (!res.ok) throw new Error(`Ошибка ${res.status}`)
+  return res.json()
+}
+
+// Текущий месяц по Москве: 2026-11
+export function currentMonth() {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: HISTORY_TIME_ZONE, year: 'numeric', month: '2-digit' }).format(new Date())
+}
+
+// Первый и последний день месяца: 2026-11 → 2026-11-01, 2026-11-30
+export function monthRange(month: string) {
+  const [y, m] = month.split('-').map(Number)
+  const last = new Date(y, m, 0).getDate()
+  return { from: `${month}-01`, to: `${month}-${String(last).padStart(2, '0')}` }
 }
 
 export async function fetchCategories(): Promise<Category[]> {
