@@ -3,8 +3,19 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 // Авторизации пока нет — работаем от имени демо-пользователя из сида сервиса account
 export const CURRENT_USER_ID = '00000000-0000-0000-0000-000000000001'
 
-// balance — сколько можно потратить (без зарезервированного под платежи в процессе)
-export type Account = { id: string; kind: 'card' | 'wallet'; title: string; balance: number }
+export type PaymentSystem = 'MIR' | 'VISA' | 'MASTERCARD'
+
+// balance — сколько можно потратить (без зарезервированного под платежи в процессе).
+// title — для выпадающих списков («Кредитная ·· 1006»), name и last4 — по отдельности.
+export type Account = {
+  id: string
+  kind: 'card' | 'wallet'
+  title: string
+  name: string
+  last4: string | null
+  paymentSystem: PaymentSystem | null
+  balance: number
+}
 
 type ApiAccount = {
   id: string
@@ -12,6 +23,7 @@ type ApiAccount = {
   title: string
   available: number
   cardLast4: string | null
+  paymentSystem: PaymentSystem | null
 }
 
 export type OperationType = 'SBP_PHONE' | 'CARD2CARD' | 'OWN_TRANSFER'
@@ -55,9 +67,10 @@ async function request<T>(url: string, init?: RequestInit): Promise<T> {
 }
 
 function toAccount(a: ApiAccount): Account {
+  const base = { id: a.id, name: a.title, last4: a.cardLast4, paymentSystem: a.paymentSystem, balance: a.available }
   return a.type === 'CARD'
-    ? { id: a.id, kind: 'card', title: `${a.title} ·· ${a.cardLast4}`, balance: a.available }
-    : { id: a.id, kind: 'wallet', title: a.title, balance: a.available }
+    ? { ...base, kind: 'card', title: `${a.title} ·· ${a.cardLast4}` }
+    : { ...base, kind: 'wallet', title: a.title }
 }
 
 // По умолчанию списываем с карты, как в макете; кошелёк — если карт нет

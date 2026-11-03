@@ -3,6 +3,7 @@ import { ChevronDown, ChevronLeft, CircleCheck, CircleX, LoaderCircle, Wallet } 
 import { Link } from 'react-router-dom'
 import type { Account, CommissionState, Payment } from '../api'
 import { formatRub } from '../format'
+import PaymentSystemBadge from './PaymentSystemBadge'
 
 // Общие куски форм переводов: каркас страницы, выбор счёта, сумма, итог
 
@@ -30,7 +31,7 @@ export function Field({ label, hint, error, children }: { label: string; hint?: 
 
 function AccountIcon({ account }: { account: Account }) {
   return account.kind === 'card'
-    ? <span className="card-badge">МИР</span>
+    ? <PaymentSystemBadge system={account.paymentSystem} />
     : <span className="round-icon tiny"><Wallet size={14} /></span>
 }
 

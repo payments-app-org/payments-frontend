@@ -3,7 +3,8 @@ import { defaultSource, useAccounts, useCommission, usePaymentSubmit } from '../
 import {
   AccountSelect, AmountInput, Field, PaymentResult, SubmitButton, Summary, TransferLayout, amountError, parseAmount, totalOf,
 } from '../../components/transfer'
-import { banks } from '../../data/banks'
+import BankSelect from '../../components/BankSelect'
+import type { Bank } from '../../data/banks'
 
 const MESSAGE_MAX = 40
 
@@ -20,14 +21,13 @@ export default function PhoneTransferPage() {
   const { accounts } = useAccounts()
   const [fromId, setFromId] = useState<string | null>(null)
   const [phone, setPhone] = useState('')
-  const [bankName, setBankName] = useState('')
+  const [bank, setBank] = useState<Bank | null>(null)
   const [message, setMessage] = useState('')
   const [rawAmount, setRawAmount] = useState('')
   const [quoteRefresh, setQuoteRefresh] = useState(0)
   const payment = usePaymentSubmit()
 
   const from = accounts?.find((a) => a.id === fromId) ?? defaultSource(accounts)
-  const bank = banks.find((b) => b.name.toLowerCase() === bankName.trim().toLowerCase())
   const amount = parseAmount(rawAmount)
   const commission = useCommission('SBP_PHONE', from?.id, amount, quoteRefresh)
   const amountErr = amountError(totalOf(commission, amount), from)
@@ -76,10 +76,10 @@ export default function PhoneTransferPage() {
         <Field label="Номер телефона">
           <input className="input" inputMode="tel" placeholder="+7 000 000 00 00" value={phone} onChange={(e) => setPhone(formatPhone(e.target.value))} />
         </Field>
-        <Field label="Банк получателя" error={bankName.trim() && !bank ? 'Выберите банк из списка' : undefined}>
-          <input className="input" list="banks" placeholder="Введите название банка" value={bankName} onChange={(e) => setBankName(e.target.value)} />
-          <datalist id="banks">{banks.map((b) => <option key={b.id} value={b.name} />)}</datalist>
-        </Field>
+        <div className="field">
+          <span className="field-label">Банк получателя</span>
+          <BankSelect value={bank} onChange={setBank} />
+        </div>
         <Field label="Сообщение получателю" hint={`${message.length}/${MESSAGE_MAX}`}>
           <input className="input" placeholder="Введите сообщение" maxLength={MESSAGE_MAX} value={message} onChange={(e) => setMessage(e.target.value)} />
         </Field>
