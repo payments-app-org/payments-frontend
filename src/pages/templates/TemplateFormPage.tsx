@@ -1,10 +1,10 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import {
   ApiError, defaultSource, deleteTemplate, fetchProvider, fetchTemplate, fetchTemplates, saveTemplate, useAccounts,
   useCommission, type PaymentTemplate, type ProviderDetails,
 } from '../../api'
-import { PayeeFieldInputs, invoiceOnly, usePayee } from '../../components/PayeeFields'
+import { PayeeFieldInputs, usePayee } from '../../components/PayeeFields'
 import ProviderLayout from '../../components/ProviderLayout'
 import ProviderLogo from '../../components/ProviderLogo'
 import { AccountSelect, AmountInput, Field, Summary, amountError, parseAmount, totalOf } from '../../components/transfer'
@@ -47,9 +47,7 @@ export default function TemplateFormPage() {
     <ProviderLayout logo={<ProviderLogo big name={p.name} domain={p.domain} color={p.color} country={p.countryCode} />}
       title={id ? 'Редактирование шаблона' : 'Новый шаблон'} subtitle={p.name}
       back={id ? ['/templates', 'Шаблоны и автоплатежи'] : ['/templates/new', 'Шаблон платежа']}>
-      {invoiceOnly(details)
-        ? <p className="bills-paid">Этот поставщик выставляет счета — сумма каждый раз своя. Добавьте его в <Link to="/bills">«Счета на оплату»</Link>.</p>
-        : <TemplateForm details={details} template={template} defaultName={defaultName} />}
+      <TemplateForm details={details} template={template} defaultName={defaultName} />
     </ProviderLayout>
   )
 }

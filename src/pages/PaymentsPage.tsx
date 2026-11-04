@@ -1,11 +1,11 @@
-import { CalendarClock, ChevronRight, Plus } from 'lucide-react'
+import { CalendarClock, ChevronRight, Plus, RefreshCw } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import Icon from '../components/Icon'
 import InfoBlock from '../components/InfoBlock'
 import ProviderSearch from '../components/ProviderSearch'
 import { paymentCategories, transferTypes } from '../data/mock'
-import { fetchAutopayments, fetchTemplates, type Autopayment, type PaymentTemplate } from '../api'
+import { fetchAutopayments, fetchTemplates, fetchTopups, type Autopayment, type PaymentTemplate, type Topup } from '../api'
 import CreateNewModal from '../components/CreateNewModal'
 import { SavedLogo, templatePayRoute } from './templates/common'
 
@@ -18,9 +18,11 @@ export default function PaymentsPage() {
   const setTab = (t: Tab) => setParams(t === 'payments' ? {} : { tab: t })
   const [templates, setTemplates] = useState<PaymentTemplate[] | null>(null)
   const [autopayments, setAutopayments] = useState<Autopayment[] | null>(null)
+  const [topups, setTopups] = useState<Topup[] | null>(null)
   const [creating, setCreating] = useState(false)
 
   useEffect(() => {
+    fetchTopups().then(setTopups).catch(() => setTopups([]))
     fetchTemplates().then(setTemplates).catch(() => setTemplates([]))
     fetchAutopayments().then(setAutopayments).catch(() => setAutopayments([]))
   }, [])
@@ -51,6 +53,12 @@ export default function PaymentsPage() {
               <button type="button" key={a.id} className="template" onClick={() => navigate(`/autopayments/${a.id}`)} title={a.name}>
                 <span className="template-auto"><SavedLogo provider={a.provider} big /><span className="auto-badge"><CalendarClock size={12} /></span></span>
                 <span className="small">{a.provider.name}</span>
+              </button>
+            ))}
+            {topups?.map((t) => (
+              <button type="button" key={t.id} className="template" onClick={() => navigate(`/topups/${t.id}`)} title={t.name}>
+                <span className="provider-logo big neutral"><RefreshCw size={24} /></span>
+                <span className="small">{t.name}</span>
               </button>
             ))}
             <button type="button" className="template template-create" onClick={() => setCreating(true)}>

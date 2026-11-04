@@ -27,6 +27,9 @@ import ChooseProviderPage from './pages/templates/ChooseProviderPage'
 import TemplateFormPage from './pages/templates/TemplateFormPage'
 import AutopaymentWizardPage from './pages/templates/AutopaymentWizardPage'
 import AutopaymentPage from './pages/templates/AutopaymentPage'
+import TemplatePayPage from './pages/templates/TemplatePayPage'
+import TopupFormPage from './pages/topups/TopupFormPage'
+import TopupPage from './pages/topups/TopupPage'
 import BillTemplatePage from './pages/bills/BillTemplatePage'
 import BillSubscriptionPage from './pages/bills/BillSubscriptionPage'
 import GovProviderPage from './pages/payments/GovProviderPage'
@@ -69,6 +72,9 @@ export default function App() {
             <Route path="/templates/new" element={<ChooseProviderPage key="template" mode="template" />} />
             <Route path="/templates/new/:code" element={<TemplateFormPage />} />
             <Route path="/templates/:id/edit" element={<TemplateFormPage key="edit" />} />
+            <Route path="/templates/:id/pay" element={<TemplatePayPage />} />
+            <Route path="/topups/new" element={<TopupFormPage />} />
+            <Route path="/topups/:id" element={<TopupPage />} />
             <Route path="/autopayments/new" element={<ChooseProviderPage key="autopayment" mode="autopayment" />} />
             <Route path="/autopayments/new/:code" element={<AutopaymentWizardPage />} />
             <Route path="/autopayments/:id" element={<AutopaymentPage />} />

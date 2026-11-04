@@ -13,14 +13,17 @@ const MOBILE_PHONE: ProviderField = {
   pattern: null, dependsOn: null, options: [], stage: 'PAY', prefill: null,
 }
 
-// Поля, которые платёж отдаёт поставщику без поиска счёта (для шаблонов и автоплатежей)
+// Поля для шаблона и автоплатежа: платим сумму плательщика без поиска счёта. У ЖКХ Москвы («Оплатить») — поля оплаты,
+// у остальных — все поля поставщика (у госуслуг и ГИС ЖКХ это данные, по которым находится плательщик)
 export function payFields(details: ProviderDetails): ProviderField[] {
   if (details.provider.groupCode === 'MOBILE') return [MOBILE_PHONE]
-  return details.fields.filter((f) => f.stage !== 'SEARCH')
+  if (details.utility?.directPay) return details.fields.filter((f) => f.stage !== 'SEARCH')
+  return details.fields
 }
 
-// Поставщик платит только найденный у него счёт (ГИС ЖКХ, Образование Москвы) — для шаблона не подходит
-export function invoiceOnly(details: ProviderDetails) {
+// Обычная форма оплаты поставщика сумму из шаблона не примет (госуслуги, поставщики с поиском счёта) —
+// шаблон открываем на своей странице оплаты
+export function needsTemplatePayPage(details: ProviderDetails) {
   return details.provider.groupCode === 'GOV'
     || (details.fields.some((f) => f.stage === 'SEARCH') && !details.utility?.directPay)
 }

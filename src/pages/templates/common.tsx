@@ -1,10 +1,11 @@
 import type { Autopayment, PaymentTemplate, SavedProvider } from '../../api'
 import ProviderLogo from '../../components/ProviderLogo'
 
-// Категории, из которых можно создать шаблон или автоплатёж: все платежи вкладки «Платежи», кроме госуслуг
-// (там сумма каждый раз из нового начисления — для них «Счета на оплату») и погашения кредитов (пока только витрина)
+// Категории, из которых можно создать шаблон или автоплатёж: все платежи вкладки «Платежи»,
+// кроме погашения кредитов (пока только витрина)
 export const TEMPLATE_GROUPS = [
   { group: 'MOBILE', title: 'Мобильная связь', icon: 'Smartphone' },
+  { group: 'GOV', title: 'Госуслуги, штрафы, налоги', icon: 'Flag' },
   { group: 'GAMES', title: 'Игры и сервисы', icon: 'Gamepad2' },
   { group: 'UTILITIES', title: 'Услуги ЖКХ', icon: 'Bath' },
   { group: 'INTERNET', title: 'Интернет и ТВ, Телефония', icon: 'MessageSquare' },
@@ -24,11 +25,12 @@ export function SavedLogo({ provider, big }: { provider: SavedProvider; big?: bo
   return <ProviderLogo big={big} name={provider.name} domain={provider.domain} color={provider.color} country={provider.countryCode} />
 }
 
-// Оплата по шаблону — форма поставщика с подставленными данными
+// Оплата по шаблону — форма поставщика с подставленными данными. Госуслуги — на странице оплаты шаблона
+// (их форма ищет начисления); поставщиков с поиском счёта эта страница сама отправит куда нужно.
 export function templatePayRoute(t: PaymentTemplate) {
-  return t.provider.groupCode === 'MOBILE'
-    ? `/payments/mobile/${t.provider.code}?template=${t.id}`
-    : `/payments/bill/${t.provider.code}?template=${t.id}`
+  if (t.provider.groupCode === 'MOBILE') return `/payments/mobile/${t.provider.code}?template=${t.id}`
+  if (t.provider.groupCode === 'GOV') return `/templates/${t.id}/pay`
+  return `/templates/${t.id}/pay?auto=1`
 }
 
 const MONTHS = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря']

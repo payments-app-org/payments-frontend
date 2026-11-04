@@ -5,7 +5,7 @@ import {
   ApiError, createAutopayment, defaultSource, fetchMobileOperator, fetchProvider, useAccounts, useCommission,
   type ProviderDetails,
 } from '../../api'
-import { PayeeFieldInputs, invoiceOnly, usePayee } from '../../components/PayeeFields'
+import { PayeeFieldInputs, usePayee } from '../../components/PayeeFields'
 import ProviderLogo from '../../components/ProviderLogo'
 import { AccountSelect, AmountInput, Field, amountError, parseAmount, totalOf } from '../../components/transfer'
 import { formatRub, tariffLabel } from '../../format'
@@ -35,13 +35,6 @@ export default function AutopaymentWizardPage() {
 
   if (!details) {
     return <section className="panel transfer"><div className="transfer-body muted">{error ?? 'Загружаем…'}</div></section>
-  }
-  if (invoiceOnly(details)) {
-    return (
-      <section className="panel transfer"><div className="transfer-body">
-        <p className="bills-paid">Этот поставщик выставляет счета — сумма каждый раз своя. Добавьте его в <Link to="/bills">«Счета на оплату»</Link>.</p>
-      </div></section>
-    )
   }
   return <Wizard details={details} />
 }

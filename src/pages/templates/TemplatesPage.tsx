@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
-import { ChevronLeft, Pencil, Plus } from 'lucide-react'
+import { ChevronLeft, Pencil, Plus, RefreshCw } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
-import { fetchAutopayments, fetchTemplates, type Autopayment, type PaymentTemplate } from '../../api'
+import { fetchAutopayments, fetchTemplates, fetchTopups, type Autopayment, type PaymentTemplate, type Topup } from '../../api'
+import { topupRule } from '../topups/TopupPage'
 import CreateNewModal from '../../components/CreateNewModal'
 import { formatRub } from '../../format'
 import { SavedLogo, autopaymentSubtitle, scheduleText, templatePayRoute } from './common'
@@ -11,9 +12,11 @@ export default function TemplatesPage() {
   const navigate = useNavigate()
   const [templates, setTemplates] = useState<PaymentTemplate[] | null>(null)
   const [autopayments, setAutopayments] = useState<Autopayment[] | null>(null)
+  const [topups, setTopups] = useState<Topup[] | null>(null)
   const [creating, setCreating] = useState(false)
 
   useEffect(() => {
+    fetchTopups().then(setTopups).catch(() => setTopups([]))
     fetchTemplates().then(setTemplates).catch(() => setTemplates([]))
     fetchAutopayments().then(setAutopayments).catch(() => setAutopayments([]))
   }, [])
@@ -24,7 +27,7 @@ export default function TemplatesPage() {
       <h1>Шаблоны и автоплатежи</h1>
       <button type="button" className="create-big" onClick={() => setCreating(true)}>
         <span className="create-plus"><Plus size={26} /></span>
-        <span><b>Создать новый</b><span className="muted small">Шаблон платежа или автоплатёж</span></span>
+        <span><b>Создать новый</b><span className="muted small">Шаблон платежа, автоплатёж или автопополнение</span></span>
       </button>
 
       <section className="panel saved-section">
@@ -55,6 +58,20 @@ export default function TemplatesPage() {
               <span className="muted">{scheduleText(a)} · {autopaymentSubtitle(a)}</span>
             </span>
             <span className={a.status === 'PAUSED' ? 'saved-amount muted' : 'saved-amount'}>{formatRub(a.amount)}</span>
+          </button>
+        ))}
+      </section>
+      <section className="panel saved-section">
+        <h2>Автопополнения</h2>
+        {topups === null && <div className="muted">Загружаем…</div>}
+        {topups?.length === 0 && <div className="muted">Автопополнений пока нет</div>}
+        {topups?.map((t) => (
+          <button type="button" key={t.id} className="saved-row saved-main" onClick={() => navigate(`/topups/${t.id}`)}>
+            <span className="provider-logo neutral"><RefreshCw size={18} /></span>
+            <span className="bill-row-main">
+              <b>{t.name}</b>
+              <span className="muted">{t.sourceTitle} → {t.destinationTitle} · {topupRule(t)}{t.status === 'PAUSED' ? ' · приостановлено' : ''}</span>
+            </span>
           </button>
         ))}
       </section>

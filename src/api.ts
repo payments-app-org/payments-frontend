@@ -31,7 +31,7 @@ export type Account = {
 
 type ApiAccount = {
   id: string
-  type: 'WALLET' | 'CARD' | 'EXTERNAL_CARD'
+  type: 'WALLET' | 'CARD' | 'EXTERNAL_CARD' | 'EXTERNAL_SBP'
   title: string
   available: number | null
   cardLast4: string | null
@@ -126,7 +126,9 @@ export function setDefaultPaymentAccount(accountId: string) {
 }
 
 export function fetchAccounts() {
-  return request<ApiAccount[]>(`/api/users/${CURRENT_USER_ID}/accounts`).then((list) => list.map(toAccount))
+  // Свои счета в других банках (источник автопополнения по СБП) в кошельках и картах не показываем
+  return request<ApiAccount[]>(`/api/users/${CURRENT_USER_ID}/accounts`)
+    .then((list) => list.filter((a) => a.type !== 'EXTERNAL_SBP').map(toAccount))
 }
 
 // От чего ещё зависит тариф: карта получателя (наша или чужая) или свой счёт зачисления
@@ -270,6 +272,45 @@ export function setAutopaymentStatus(id: string, status: 'ACTIVE' | 'PAUSED') {
 export async function deleteAutopayment(id: string) {
   const res = await fetch(`/api/autopayments/${id}`, { method: 'DELETE', headers: asUser })
   if (!res.ok) throw new ApiError(res.status, 'Не удалось удалить автоплатёж')
+}
+
+// Автопополнение своего счёта: со своей карты/кошелька или со своего счёта в другом банке по СБП
+export type TopupKind = 'MONTHLY' | 'BY_BALANCE' | 'CONSTANT_BALANCE'
+export type Topup = {
+  id: string; name: string; sourceKind: 'OWN' | 'SBP'; sourceAccountId: string; sourceTitle: string; sourceBankId: string | null
+  destinationAccountId: string; destinationTitle: string; kind: TopupKind; dayOfMonth: number | null; amount: number | null
+  threshold: number | null; targetBalance: number | null; monthlyLimit: number | null; nextRunDate: string | null
+  status: 'ACTIVE' | 'PAUSED'; lastRunAt: string | null; lastStatus: string | null; lastMessage: string | null; monthUsed: number
+}
+export type TopupRun = {
+  id: string; status: 'PENDING' | 'SUCCESS' | 'FAILED' | 'PROCESSING'; amount: number; balanceBefore: number | null
+  message: string | null; createdAt: string
+}
+export type NewTopup = {
+  name?: string; sourceKind: 'OWN' | 'SBP'; sourceAccountId?: string; sourceBankId?: string; sourceBankName?: string
+  destinationAccountId: string; kind: TopupKind; dayOfMonth?: number; amount?: number; threshold?: number
+  targetBalance?: number; monthlyLimit?: number
+}
+
+export function fetchTopups() {
+  return request<Topup[]>('/api/autopayments/topups', { headers: asUser })
+}
+
+export function fetchTopup(id: string) {
+  return request<{ topup: Topup; runs: TopupRun[] }>(`/api/autopayments/topups/${id}`, { headers: asUser })
+}
+
+export function createTopup(body: NewTopup) {
+  return request<Topup>('/api/autopayments/topups', { method: 'POST', headers: asUserJson, body: JSON.stringify(body) })
+}
+
+export function setTopupStatus(id: string, status: 'ACTIVE' | 'PAUSED') {
+  return request<Topup>(`/api/autopayments/topups/${id}`, { method: 'PATCH', headers: asUserJson, body: JSON.stringify({ status }) })
+}
+
+export async function deleteTopup(id: string) {
+  const res = await fetch(`/api/autopayments/topups/${id}`, { method: 'DELETE', headers: asUser })
+  if (!res.ok) throw new ApiError(res.status, 'Не удалось удалить автопополнение')
 }
 
 export type Region = { code: string; name: string }
