@@ -14,6 +14,9 @@
   color: var(--text);
 }
 
+/* Интерфейс в масштабе 80% */
+html { zoom: 0.8; }
+
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); }
 button { font: inherit; color: inherit; border: 0; background: none; cursor: pointer; }

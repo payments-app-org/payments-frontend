@@ -15,9 +15,13 @@ export function formatMoney(value: number, currency: string) {
 
 const percentFormat = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 2 })
 
-// Тариф словами: «1,5%», «3% (мин. 50 ₽)», «10 ₽ + 1,5%»
-export function tariffLabel(t: { percent: number; minFee: number; fixedFee: number }) {
+// Тариф словами: «1,5%», «3% (мин. 50 ₽)», «10 ₽ + 1,5%», «0,5% сверх 100 000 ₽ в месяц (не более 1 500 ₽)»
+export function tariffLabel(t: {
+  percent: number; minFee: number; fixedFee: number; maxFee?: number | null; freeMonthlyAmount?: number | null
+}) {
   const percent = `${percentFormat.format(t.percent)}%`
-  const base = t.fixedFee > 0 ? `${formatRub(t.fixedFee)} + ${percent}` : percent
-  return t.minFee > 0 ? `${base} (мин. ${formatRub(t.minFee)})` : base
+  let base = t.fixedFee > 0 ? `${formatRub(t.fixedFee)} + ${percent}` : percent
+  if (t.freeMonthlyAmount) base += ` сверх ${formatRub(t.freeMonthlyAmount)} в месяц`
+  const bounds = [t.minFee > 0 && `мин. ${formatRub(t.minFee)}`, t.maxFee != null && `не более ${formatRub(t.maxFee)}`].filter(Boolean)
+  return bounds.length ? `${base} (${bounds.join(', ')})` : base
 }

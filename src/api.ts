@@ -46,14 +46,21 @@ type ApiAccount = {
 
 export type OperationType = 'SBP_PHONE' | 'CARD2CARD' | 'OWN_TRANSFER' | 'ABROAD' | 'WALLET_TRANSFER' | 'REQUISITES' | 'REQUISITES_OUR' | 'BILL'
 
+// «МТС Premium» — развлекательная подписка, «МТС Банк Premium» — пакет банковских услуг
+export type UserSubscription = 'NONE' | 'MTS_PREMIUM' | 'BANK_PREMIUM'
+
 export type Commission = {
   amount: number
   percent: number
   minFee: number
   fixedFee: number
+  // Верхняя граница комиссии; бесплатный лимит в месяц и его остаток до этой операции (переводы по СБП)
+  maxFee: number | null
+  freeMonthlyAmount: number | null
+  freeMonthlyLeft: number | null
   commission: number
   total: number
-  subscription: 'NONE' | 'PREMIUM' | 'PREMIUM_PLUS'
+  subscription: UserSubscription
   quoteToken: string
 }
 
@@ -373,7 +380,7 @@ export type Profile = {
   middleName: string | null
   displayName: string
   phone: string
-  subscription: 'NONE' | 'PREMIUM' | 'PREMIUM_PLUS'
+  subscription: UserSubscription
   identificationLevel: 'ANONYMOUS' | 'SIMPLIFIED' | 'FULL'
   roundup: Roundup | null
 }
@@ -398,7 +405,9 @@ export async function disableRoundup() {
   if (!res.ok) throw new ApiError(res.status, 'Не удалось отключить округление')
 }
 
-export type TariffRow = { label: string; percent: number; minFee: number; fixedFee: number }
+export type TariffRow = {
+  label: string; percent: number; minFee: number; fixedFee: number; maxFee: number | null; freeMonthlyAmount: number | null
+}
 export type TariffSection = { operationType: string; title: string; outgoing: TariffRow[]; incoming: TariffRow[] }
 
 export function fetchTariffs(account: 'WALLET' | 'OUR_CARD') {

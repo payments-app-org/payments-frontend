@@ -129,13 +129,16 @@ export function Summary({ state }: { state: CommissionState }) {
     case 'error':
       return <div className="summary error-text">{state.message}</div>
     case 'ready': {
-      const { commission, total } = state.data
+      const { commission, total, freeMonthlyLeft } = state.data
       return (
         <div className="summary">
           <div className="summary-row">
             <span>Комиссия {tariffLabel(state.data)}</span>
             <span>{formatRub(commission)}</span>
           </div>
+          {freeMonthlyLeft != null && (
+            <div className="summary-row muted-text"><span>Без комиссии в этом месяце ещё</span><span>{formatRub(freeMonthlyLeft)}</span></div>
+          )}
           <div className="summary-row total"><span>Итого к списанию</span><span>{formatRub(total)}</span></div>
         </div>
       )
