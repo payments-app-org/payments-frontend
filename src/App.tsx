@@ -20,6 +20,7 @@ import LegalPaymentPage from './pages/requisites/LegalPaymentPage'
 import MobilePaymentPage from './pages/payments/MobilePaymentPage'
 import ProviderGroupPage from './pages/payments/ProviderGroupPage'
 import BillPaymentPage from './pages/payments/BillPaymentPage'
+import { PAYMENT_GROUPS } from './data/paymentGroups'
 import GovProviderPage from './pages/payments/GovProviderPage'
 import LoansPage from './pages/payments/LoansPage'
 import LoanPaymentPage from './pages/payments/LoanPaymentPage'
@@ -49,10 +50,9 @@ export default function App() {
             <Route path="/transfers/requisites/legal-our" element={<LegalPaymentPage ourBank />} />
             <Route path="/payments/mobile" element={<MobilePaymentPage />} />
             <Route path="/payments/mobile/:code" element={<MobilePaymentPage />} />
-            <Route path="/payments/gov" element={<ProviderGroupPage key="GOV" group="GOV" title="Оплата гос.услуг и штрафов" />} />
-            <Route path="/payments/transport" element={<ProviderGroupPage key="TRANSPORT" group="TRANSPORT" title="Транспорт" />} />
-            <Route path="/payments/games" element={<ProviderGroupPage key="GAMES" group="GAMES" title="Игры и сервисы" />} />
-            <Route path="/payments/foreign-mobile" element={<ProviderGroupPage key="FOREIGN_MOBILE" group="FOREIGN_MOBILE" title="Зарубежные операторы" />} />
+            {PAYMENT_GROUPS.map((g) => (
+              <Route key={g.group} path={g.path} element={<ProviderGroupPage key={g.group} group={g.group} title={g.title} />} />
+            ))}
             <Route path="/payments/bill/:code" element={<BillPaymentPage />} />
             <Route path="/payments/gov/:code" element={<GovProviderPage />} />
             <Route path="/payments/loans" element={<LoansPage />} />

@@ -2,9 +2,10 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { Info } from 'lucide-react'
 import { useParams } from 'react-router-dom'
 import {
-  ApiError, MIN_AMOUNT, defaultSource, fetchProvider, maxPaymentAmount, useAccounts, useCommission, useOperationLimits,
-  usePaymentSubmit, type ProviderDetails, type ProviderField,
+  ApiError, MIN_AMOUNT, defaultSource, fetchProvider, maxPaymentAmount, searchInvoices, useAccounts, useCommission,
+  useOperationLimits, usePaymentSubmit, useProfile, type Invoice, type ProviderDetails, type ProviderField,
 } from '../../api'
+import { groupPage } from '../../data/paymentGroups'
 import { flag } from '../../abroad'
 import ProviderLayout from '../../components/ProviderLayout'
 import ProviderLogo from '../../components/ProviderLogo'
@@ -14,11 +15,13 @@ import { OfferNote } from '../requisites/RequisitesLayout'
 import { formatPhone } from './MobilePaymentPage'
 
 // Куда «назад» из формы поставщика — в его категорию
-const GROUPS: Record<string, [string, string]> = {
-  TRANSPORT: ['/payments/transport', 'Транспорт'],
-  GAMES: ['/payments/games', 'Игры и сервисы'],
-  FOREIGN_MOBILE: ['/payments/foreign-mobile', 'Зарубежные операторы'],
+function backTo(group: string): [string, string] {
+  const g = groupPage(group)
+  return g ? [g.path, g.back] : ['/', 'Платежи']
 }
+
+const ruDate = (iso: string) => iso.split('-').reverse().join('.')
+const thisMonth = () => new Date().toISOString().slice(0, 7)
 
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/
 
@@ -45,7 +48,7 @@ export default function BillPaymentPage() {
   const p = details.provider
   return (
     <ProviderLayout logo={<ProviderLogo big name={p.name} domain={p.domain} color={p.color} country={p.countryCode} />}
-      title={p.title} subtitle={p.legalName} back={GROUPS[p.groupCode] ?? ['/', 'Платежи']}>
+      title={p.title} subtitle={p.legalName} back={backTo(p.groupCode)}>
       <BillForm key={p.code} details={details} />
     </ProviderLayout>
   )
@@ -56,9 +59,21 @@ function BillForm({ details }: { details: ProviderDetails }) {
   const { accounts } = useAccounts()
   const limits = useOperationLimits()
   const payment = usePaymentSubmit()
-  // Значение по умолчанию у выбора — первый вариант
-  const [values, setValues] = useState<Record<string, string>>(() =>
-    Object.fromEntries(fields.filter((f) => f.type === 'CHOICE' && f.options.length).map((f) => [f.key, f.options[0].value])))
+  const profile = useProfile()
+  // Значение по умолчанию: у выбора — первый вариант, у месяца — текущий
+  const [values, setValues] = useState<Record<string, string>>(() => Object.fromEntries([
+    ...fields.filter((f) => f.type === 'CHOICE' && f.options.length).map((f) => [f.key, f.options[0].value]),
+    ...fields.filter((f) => f.type === 'MONTH').map((f) => [f.key, thisMonth()]),
+  ]))
+  // Поиск счетов у поставщика (поля stage = SEARCH): найденные счета и выбранный
+  const searchFields = fields.filter((f) => f.stage === 'SEARCH')
+  const payFields = fields.filter((f) => f.stage !== 'SEARCH')
+  const lookup = searchFields.length > 0
+  const [invoices, setInvoices] = useState<Invoice[] | null>(null)
+  const [invoiceId, setInvoiceId] = useState<string | null>(null)
+  const [searching, setSearching] = useState(false)
+  const [searchError, setSearchError] = useState<string | null>(null)
+  const invoice = invoices?.find((i) => i.id === invoiceId) ?? null
   const [touched, setTouched] = useState<Record<string, boolean>>({})
   const [tried, setTried] = useState(false)
   const [rawAmount, setRawAmount] = useState('')
@@ -67,7 +82,26 @@ function BillForm({ details }: { details: ProviderDetails }) {
 
   const sources = accounts?.filter((a) => a.kind !== 'external') ?? []
   const from = sources.find((a) => a.id === fromId) ?? (sources.length ? defaultSource(sources) : null)
-  const set = (key: string, v: string) => setValues((s) => ({ ...s, [key]: v }))
+  const set = (key: string, v: string) => {
+    setValues((s) => ({ ...s, [key]: v }))
+    // Поменяли данные поиска — найденные счета уже не про них
+    if (searchFields.some((f) => f.key === key)) { setInvoices(null); setInvoiceId(null) }
+  }
+
+  // Подставляем ФИО и телефон клиента, если поле ещё пустое
+  useEffect(() => {
+    if (!profile) return
+    const fullName = [profile.lastName, profile.firstName, profile.middleName].filter(Boolean).join(' ')
+    setValues((s) => {
+      const next = { ...s }
+      for (const f of fields) {
+        if (next[f.key]) continue
+        if (f.prefill === 'USER_FULL_NAME') next[f.key] = fullName
+        if (f.prefill === 'USER_PHONE' && profile.phone) next[f.key] = formatPhone(profile.phone)
+      }
+      return next
+    })
+  }, [profile, fields])
 
   // Номиналы поля NOMINAL: только для выбранного региона, если номинал от него зависит
   const nominalField = fields.find((f) => f.type === 'NOMINAL')
@@ -80,18 +114,20 @@ function BillForm({ details }: { details: ProviderDetails }) {
     if (nominalField && values[nominalField.key] && !nominal) set(nominalField.key, '')
   }, [nominalField, nominal, values])
 
-  const amount = nominalField ? nominal?.price ?? 0 : parseAmount(rawAmount)
+  const amount = lookup ? invoice?.amount ?? 0 : nominalField ? nominal?.price ?? 0 : parseAmount(rawAmount)
   const commission = useCommission('BILL', from?.id, amount, quoteRefresh, { providerCode: provider.code })
   const accountMax = maxPaymentAmount(limits, 'BILL', from)
   const min = Math.max(MIN_AMOUNT, provider.minAmount ?? 0)
   const max = [accountMax, provider.maxAmount].filter((x): x is number => x !== null).reduce((a, b) => Math.min(a, b), Infinity)
-  const amountErr = nominalField ? amountError(totalOf(commission, amount), from, amount)
+  const fixedAmount = lookup || !!nominalField
+  const amountErr = fixedAmount ? amountError(totalOf(commission, amount), from, amount)
     : amount > 0 && amount < min ? `Минимальная сумма — ${formatRub(min)}`
     : amountError(totalOf(commission, amount), from, amount, max === Infinity ? null : max)
 
   const errors = Object.fromEntries(fields.map((f) => [f.key, fieldError(f, values[f.key] ?? '', foreignMobile)]))
   const fieldsOk = Object.values(errors).every((e) => !e)
-  const valid = fieldsOk && amount > 0 && !amountErr && !!from && commission.status === 'ready'
+  const searchOk = searchFields.every((f) => !errors[f.key])
+  const valid = fieldsOk && (!lookup || !!invoice) && amount > 0 && !amountErr && !!from && commission.status === 'ready'
   const submitting = payment.state.status === 'submitting'
 
   useEffect(() => {
@@ -108,15 +144,40 @@ function BillForm({ details }: { details: ProviderDetails }) {
       if (!v) continue
       recipientFields[f.key] = f.type === 'PHONE' ? `+${v.replace(/\D/g, '')}` : f.type === 'LOCAL_PHONE' || f.type === 'DIGITS' ? v.replace(/\D/g, '') : v
     }
-    payment.submit({ type: 'BILL', sourceAccountId: from.id, providerCode: provider.code, recipientFields, amount, quoteToken: commission.data.quoteToken })
+    payment.submit({
+      type: 'BILL', sourceAccountId: from.id, providerCode: provider.code, recipientFields, amount,
+      quoteToken: commission.data.quoteToken, chargeId: invoice?.id,
+    })
+  }
+
+  const search = async () => {
+    setTried(false)
+    setTouched(Object.fromEntries(searchFields.map((f) => [f.key, true])))
+    if (!searchOk) return
+    setSearching(true)
+    setSearchError(null)
+    setInvoiceId(null)
+    try {
+      const found = await searchInvoices(provider.code, Object.fromEntries(searchFields
+        .filter((f) => (values[f.key] ?? '').trim())
+        .map((f) => [f.key, f.type === 'DIGITS' ? values[f.key].replace(/\D/g, '') : values[f.key].trim()])))
+      setInvoices(found)
+      if (found.length === 1) setInvoiceId(found[0].id)
+    } catch (err) {
+      setInvoices(null)
+      setSearchError(err instanceof ApiError ? err.message : 'Не удалось найти счета')
+    } finally {
+      setSearching(false)
+    }
   }
 
   if (payment.state.status === 'done') {
     const done = payment.state.payment
     return (
       <>
-        <PaymentResult what="Платёж" payment={done} to={nominal ? `${provider.name} · ${nominal.name}` : provider.name}
-          back={GROUPS[provider.groupCode] ? [GROUPS[provider.groupCode][0], `Вернуться: ${GROUPS[provider.groupCode][1]}`] : ['/', 'Вернуться к платежам']}
+        <PaymentResult what="Платёж" payment={done}
+          to={invoice ? `${provider.name} · ${invoice.title}` : nominal ? `${provider.name} · ${nominal.name}` : provider.name}
+          back={[backTo(provider.groupCode)[0], `Вернуться: ${backTo(provider.groupCode)[1]}`]}
           onRetry={() => { payment.reset(); setQuoteRefresh((n) => n + 1) }} />
         {done.status === 'SUCCESS' && game?.deliveryNote && <p className="muted-text center">{game.deliveryNote}</p>}
       </>
@@ -124,9 +185,7 @@ function BillForm({ details }: { details: ProviderDetails }) {
   }
 
   const show = (key: string) => (tried || touched[key]) && errors[key]
-  return (
-    <form className="form" onSubmit={submit}>
-      {fields.map((f) => {
+  const renderField = (f: ProviderField) => {
         if (f.type === 'CHOICE') {
           return (
             <div className="field" key={f.key}>
@@ -139,6 +198,13 @@ function BillForm({ details }: { details: ProviderDetails }) {
                 ))}
               </div>
             </div>
+          )
+        }
+        if (f.type === 'MONTH') {
+          return (
+            <Field key={f.key} label={f.label} error={show(f.key) || undefined} hint={f.hint ?? undefined}>
+              <input className="input" type="month" value={values[f.key] ?? ''} onChange={(e) => set(f.key, e.target.value)} />
+            </Field>
           )
         }
         if (f.type === 'NOMINAL') {
@@ -171,9 +237,37 @@ function BillForm({ details }: { details: ProviderDetails }) {
             </span>
           </Field>
         )
-      })}
+  }
 
-      {!nominalField && (
+  return (
+    <form className="form" onSubmit={submit}>
+      {lookup && (
+        <>
+          {searchFields.map(renderField)}
+          {searchError && <div className="form-error">{searchError}</div>}
+          <button type="button" className="btn-primary" onClick={search} disabled={searching}>{searching ? 'Ищем…' : 'Найти'}</button>
+          {invoices && invoices.length === 0 && <div className="history-empty muted">Неоплаченных счетов не найдено</div>}
+          {invoices && invoices.length > 0 && (
+            <div className="form charges">
+              <h3>Найдено счетов: {invoices.length}</h3>
+              {invoices.map((i) => (
+                <button type="button" key={i.id} className={i.id === invoiceId ? 'charge-card active' : 'charge-card'} onClick={() => setInvoiceId(i.id)}>
+                  <span className="charge-main">
+                    <b>{i.title}</b>
+                    {i.description && <span className="muted">{i.description}</span>}
+                    {i.dueDate && <span className="muted">Оплатить до {ruDate(i.dueDate)}</span>}
+                  </span>
+                  <span className="charge-amount"><b>{formatRub(i.amount)}</b></span>
+                </button>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+      {(!lookup || invoice) && <>
+      {payFields.map(renderField)}
+
+      {!fixedAmount && (
         <Field label="Сумма платежа" error={amountErr}
           hint={<span className="amount-hint">От {formatRub(min)}{max !== Infinity ? ` до ${formatRub(max)}` : ''}</span>}>
           <AmountInput value={rawAmount} onChange={setRawAmount} placeholder="₽" />
@@ -193,6 +287,7 @@ function BillForm({ details }: { details: ProviderDetails }) {
         <OfferNote />
         <button type="submit" className="btn-primary" disabled={submitting || (tried && !valid)}>{submitting ? 'Оплачиваем…' : 'Оплатить'}</button>
       </div>
+      </>}
     </form>
   )
 }

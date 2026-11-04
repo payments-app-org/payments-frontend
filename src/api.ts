@@ -150,11 +150,21 @@ export type Provider = {
 export type GovDetails = { lookup: 'UIN' | 'STS_VU' | 'INN' | 'PASSPORT_INN' | 'FREE'; chargeKind: string | null; uinPrefix: string | null; description: string | null }
 // Поле формы поставщика: CHOICE — выбор из options, NOMINAL — номинал из nominals (с region = значению поля dependsOn)
 export type ProviderField = {
-  key: string; label: string; type: 'TEXT' | 'DIGITS' | 'EMAIL' | 'PHONE' | 'LOCAL_PHONE' | 'CHOICE' | 'NOMINAL'
+  key: string; label: string; type: 'TEXT' | 'DIGITS' | 'EMAIL' | 'PHONE' | 'LOCAL_PHONE' | 'CHOICE' | 'NOMINAL' | 'MONTH'
   required: boolean; placeholder: string | null; hint: string | null; info: string | null; pattern: string | null
   dependsOn: string | null; options: { value: string; label: string; countryCode: string | null }[]
+  // SEARCH — поле поиска счетов у поставщика («Найти»), PAY — поле оплаты; prefill — подставить данные клиента
+  stage: 'SEARCH' | 'PAY'; prefill: 'USER_FULL_NAME' | 'USER_PHONE' | null
 }
 export type Nominal = { id: number; region: string | null; name: string; price: number }
+// Счёт, найденный у поставщика по полям поиска
+export type Invoice = { id: string; title: string; description: string | null; amount: number; dueDate: string | null }
+
+export function searchInvoices(providerCode: string, fields: Record<string, string>) {
+  return request<Invoice[]>('/api/biller/invoices/search', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ providerCode, fields }),
+  })
+}
 export type ProviderDetails = {
   provider: Provider; fields: ProviderField[]; nominals: Nominal[]; gov: GovDetails | null
   transport: { kind: string; region: string } | null
@@ -208,6 +218,9 @@ export function fetchSbpBanks(phone: string, signal?: AbortSignal) {
 
 export type Profile = {
   id: string
+  firstName: string
+  lastName: string
+  middleName: string | null
   displayName: string
   phone: string
   subscription: 'NONE' | 'PREMIUM' | 'PREMIUM_PLUS'
