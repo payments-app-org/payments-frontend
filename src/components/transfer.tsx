@@ -178,6 +178,9 @@ export function PaymentResult({ payment, to, onRetry, back = ['/?tab=transfers',
         <CircleCheck size={56} strokeWidth={1.5} className="success-icon" />
         <h2>{what} выполнен</h2>
         <p className="muted-text">{formatRub(payment.amount)} · {to}<br />Комиссия {formatRub(payment.commission)}, списано {formatRub(payment.total)}</p>
+        {!!payment.roundUpAmount && payment.roundUpAmount > 0 && (
+          <p className="roundup-note">Округление на пользу: {formatRub(payment.roundUpAmount)} — «{payment.roundUpFundName}»</p>
+        )}
         <Link to={back[0]} className="btn-primary link">{back[1]}</Link>
       </div>
     )

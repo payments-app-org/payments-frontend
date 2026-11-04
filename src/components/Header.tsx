@@ -2,8 +2,8 @@ import { NavLink, useLocation } from 'react-router-dom'
 
 export default function Header() {
   const { pathname } = useLocation()
-  // Формы переводов — часть раздела «Платежи и переводы»
-  const paymentsActive = pathname === '/' || pathname.startsWith('/transfers')
+  // Всё, кроме истории и «Ещё», — раздел «Платежи и переводы»
+  const paymentsActive = !pathname.startsWith('/history') && !pathname.startsWith('/more')
 
   return (
     <header className="header">
@@ -12,6 +12,7 @@ export default function Header() {
         <nav className="nav">
           <NavLink to="/" className={paymentsActive ? 'nav-link active' : 'nav-link'}>Платежи и переводы</NavLink>
           <NavLink to="/history" className="nav-link">История</NavLink>
+          <NavLink to="/more" className="nav-link">Ещё</NavLink>
         </nav>
       </div>
     </header>

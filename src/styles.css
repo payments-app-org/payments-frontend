@@ -608,3 +608,21 @@ h3 { font-size: 18px; margin: 0; font-weight: 600; }
 .switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; transition: left .15s; box-shadow: 0 1px 3px rgba(0,0,0,.2); }
 .switch:checked { background: #1baf7a; }
 .switch:checked::after { left: 25px; }
+
+/* Ещё: профиль и округление на пользу */
+.profile-card { display: flex; align-items: center; gap: 20px; padding: 28px 32px; margin-bottom: 24px; }
+.profile-card h2 { margin: 0 0 4px; }
+.profile-avatar { width: 64px; height: 64px; border-radius: 50%; background: #7b7ff5; color: #fff; font-size: 22px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.roundup-hero { padding: 32px; display: flex; flex-direction: column; gap: 16px; }
+.roundup-hero h1 { margin: 0; }
+.roundup-hero > .btn-primary { align-self: flex-start; }
+.roundup-heart { width: 88px; height: 88px; border-radius: 50%; background: #fdecee; color: #e5484d; display: inline-flex; align-items: center; justify-content: center; }
+.roundup-points { display: flex; flex-direction: column; gap: 18px; margin: 8px 0; }
+.roundup-points > div { display: flex; gap: 16px; align-items: flex-start; }
+.roundup-points > div > span:last-child { display: flex; flex-direction: column; gap: 4px; }
+.roundup-current { background: #e9f8f1; border-radius: 14px; padding: 14px 18px; display: flex; flex-direction: column; gap: 2px; }
+.roundup-panel { padding: 28px 32px; margin-bottom: 24px; display: flex; flex-direction: column; gap: 14px; }
+.roundup-panel h2 { margin: 0; }
+.roundup-examples { display: flex; flex-direction: column; gap: 12px; }
+.roundup-example { display: flex; align-items: center; gap: 16px; }
+.roundup-note { color: #1baf7a; font-weight: 500; margin: 0; }

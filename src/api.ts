@@ -71,6 +71,9 @@ export type Payment = {
   recipientBankId: string | null
   failureCode: string | null
   message: string
+  // «Округление на пользу»: сколько добавили к покупке и в какой фонд
+  roundUpAmount?: number
+  roundUpFundName?: string | null
 }
 
 export class ApiError extends Error {
@@ -372,12 +375,27 @@ export type Profile = {
   phone: string
   subscription: 'NONE' | 'PREMIUM' | 'PREMIUM_PLUS'
   identificationLevel: 'ANONYMOUS' | 'SIMPLIFIED' | 'FULL'
+  roundup: Roundup | null
 }
 
-export function useProfile() {
+export function useProfile(refresh = 0) {
   const [profile, setProfile] = useState<Profile | null>(null)
-  useEffect(() => { request<Profile>(`/api/users/${CURRENT_USER_ID}`).then(setProfile, () => {}) }, [])
+  useEffect(() => { request<Profile>(`/api/users/${CURRENT_USER_ID}`).then(setProfile, () => {}) }, [refresh])
   return profile
+}
+
+// «Округление на пользу»: шаг 10 / 100 / 1000 ₽ и благотворительный фонд
+export type Roundup = { step: 10 | 100 | 1000; fundCode: string; fundName: string; enabledAt: string }
+
+export function enableRoundup(step: number, fundCode: string, fundName: string) {
+  return request<Roundup>(`/api/users/${CURRENT_USER_ID}/roundup`, {
+    method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ step, fundCode, fundName }),
+  })
+}
+
+export async function disableRoundup() {
+  const res = await fetch(`/api/users/${CURRENT_USER_ID}/roundup`, { method: 'DELETE' })
+  if (!res.ok) throw new ApiError(res.status, 'Не удалось отключить округление')
 }
 
 export type TariffRow = { label: string; percent: number; minFee: number; fixedFee: number }
