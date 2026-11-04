@@ -9,6 +9,8 @@ export const PAYMENT_GROUPS = [
   { group: 'SHOPS', path: '/payments/shops', title: 'Интернет-магазины', back: 'Интернет-магазины' },
   { group: 'TRAVEL', path: '/payments/travel', title: 'Путешествие', back: 'Путешествие' },
   { group: 'INSURANCE', path: '/payments/insurance', title: 'Страхование', back: 'Страхование' },
+  { group: 'SECURITY', path: '/payments/security', title: 'Охранные системы', back: 'Охранные системы' },
+  { group: 'DONATIONS', path: '/payments/donations', title: 'Пожертвования', back: 'Пожертвования' },
 ] as const
 
 export function groupPage(group: string) {
