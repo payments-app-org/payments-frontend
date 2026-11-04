@@ -11,6 +11,8 @@ import { SavedLogo, templatePayRoute } from './templates/common'
 
 type Tab = 'payments' | 'transfers'
 
+const STRIP_MAX = 5
+
 export default function PaymentsPage() {
   const [params, setParams] = useSearchParams()
   const navigate = useNavigate()
@@ -26,6 +28,22 @@ export default function PaymentsPage() {
     fetchTemplates().then(setTemplates).catch(() => setTemplates([]))
     fetchAutopayments().then(setAutopayments).catch(() => setAutopayments([]))
   }, [])
+
+  // В ленте — не больше STRIP_MAX элементов, остальные — по «Все».
+  const strip = [
+    ...(templates ?? []).map((t) => ({
+      key: `t-${t.id}`, to: templatePayRoute(t), title: t.name, label: t.name,
+      icon: <SavedLogo provider={t.provider} big />,
+    })),
+    ...(autopayments ?? []).map((a) => ({
+      key: `a-${a.id}`, to: `/autopayments/${a.id}`, title: a.name, label: a.provider.name,
+      icon: <span className="template-auto"><SavedLogo provider={a.provider} big /><span className="auto-badge"><CalendarClock size={12} /></span></span>,
+    })),
+    ...(topups ?? []).map((t) => ({
+      key: `u-${t.id}`, to: `/topups/${t.id}`, title: t.name, label: t.name,
+      icon: <span className="provider-logo big neutral"><RefreshCw size={24} /></span>,
+    })),
+  ].slice(0, STRIP_MAX)
 
   return (
     <>
@@ -43,22 +61,10 @@ export default function PaymentsPage() {
             <button type="button" className="chip" onClick={() => navigate('/templates')}>Все</button>
           </div>
           <div className="template-list">
-            {templates?.map((t) => (
-              <button type="button" key={t.id} className="template" onClick={() => navigate(templatePayRoute(t))} title={t.name}>
-                <SavedLogo provider={t.provider} big />
-                <span className="small">{t.name}</span>
-              </button>
-            ))}
-            {autopayments?.map((a) => (
-              <button type="button" key={a.id} className="template" onClick={() => navigate(`/autopayments/${a.id}`)} title={a.name}>
-                <span className="template-auto"><SavedLogo provider={a.provider} big /><span className="auto-badge"><CalendarClock size={12} /></span></span>
-                <span className="small">{a.provider.name}</span>
-              </button>
-            ))}
-            {topups?.map((t) => (
-              <button type="button" key={t.id} className="template" onClick={() => navigate(`/topups/${t.id}`)} title={t.name}>
-                <span className="provider-logo big neutral"><RefreshCw size={24} /></span>
-                <span className="small">{t.name}</span>
+            {strip.map((item) => (
+              <button type="button" key={item.key} className="template" onClick={() => navigate(item.to)} title={item.title}>
+                {item.icon}
+                <span className="small">{item.label}</span>
               </button>
             ))}
             <button type="button" className="template template-create" onClick={() => setCreating(true)}>

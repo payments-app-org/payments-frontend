@@ -555,6 +555,7 @@ h3 { font-size: 18px; margin: 0; font-weight: 600; }
 .bills-paid { font-size: 17px; line-height: 1.5; margin: 0; }
 
 /* Шаблоны и автоплатежи */
+.panel.templates { min-width: 0; }
 .template-list { overflow-x: auto; padding-bottom: 4px; }
 .template { min-width: 72px; max-width: 88px; text-align: center; }
 .template .small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 88px; }
