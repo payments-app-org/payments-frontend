@@ -1,8 +1,8 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Smartphone } from 'lucide-react'
-import { useParams } from 'react-router-dom'
+import { useParams, useSearchParams } from 'react-router-dom'
 import {
-  ApiError, defaultSource, fetchMobileOperator, fetchProvider, maxPaymentAmount, useAccounts, useCommission,
+  ApiError, defaultSource, fetchMobileOperator, fetchProvider, fetchTemplate, maxPaymentAmount, useAccounts, useCommission,
   useOperationLimits, usePaymentSubmit, type Provider,
 } from '../../api'
 import ProviderLayout from '../../components/ProviderLayout'
@@ -39,6 +39,18 @@ export default function MobilePaymentPage() {
   const [amountTouched, setAmountTouched] = useState(false)
   const [fromId, setFromId] = useState<string | null>(null)
   const [quoteRefresh, setQuoteRefresh] = useState(0)
+  const [params] = useSearchParams()
+  const templateId = params.get('template')
+
+  // Оплата по шаблону: номер, сумма и счёт списания уже заполнены
+  useEffect(() => {
+    if (!templateId) return
+    fetchTemplate(templateId).then((t) => {
+      if (t.fields.phone) setPhone(formatPhone(t.fields.phone))
+      setRawAmount(String(t.amount))
+      setFromId(t.sourceAccountId)
+    }).catch(() => {})
+  }, [templateId])
 
   const digits = phone.replace(/\D/g, '').slice(1)
   const sources = accounts?.filter((a) => a.kind !== 'external') ?? []

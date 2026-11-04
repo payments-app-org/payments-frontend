@@ -21,6 +21,6 @@ export default function RequisitesLayout({ title, subtitle, gov, children }: { t
   )
 }
 
-export function OfferNote() {
-  return <span className="offer-note">Нажимая на кнопку «Оплатить», вы соглашаетесь с <a href="#">Договором оферты</a></span>
+export function OfferNote({ action = 'Оплатить' }: { action?: string }) {
+  return <span className="offer-note">Нажимая на кнопку «{action}», вы соглашаетесь с <a href="#">Договором оферты</a></span>
 }

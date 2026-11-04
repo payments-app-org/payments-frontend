@@ -1,8 +1,8 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Info } from 'lucide-react'
-import { useParams } from 'react-router-dom'
+import { useParams, useSearchParams } from 'react-router-dom'
 import {
-  ApiError, MIN_AMOUNT, defaultSource, fetchProvider, maxPaymentAmount, searchInvoices, useAccounts, useCommission,
+  ApiError, MIN_AMOUNT, defaultSource, fetchProvider, fetchTemplate, maxPaymentAmount, searchInvoices, useAccounts, useCommission,
   useOperationLimits, usePaymentSubmit, useProfile, type Invoice, type ProviderDetails, type ProviderField,
 } from '../../api'
 import { groupPage } from '../../data/paymentGroups'
@@ -85,6 +85,24 @@ function BillForm({ details }: { details: ProviderDetails }) {
   const [rawAmount, setRawAmount] = useState('')
   const [fromId, setFromId] = useState<string | null>(null)
   const [quoteRefresh, setQuoteRefresh] = useState(0)
+  const [params] = useSearchParams()
+  const templateId = params.get('template')
+
+  // Оплата по шаблону: данные поставщика, сумма и счёт списания уже заполнены — остаётся нажать «Оплатить»
+  useEffect(() => {
+    if (!templateId) return
+    fetchTemplate(templateId).then((t) => {
+      if (t.provider.code !== provider.code) return
+      setValues((s) => {
+        const next = { ...s }
+        for (const [k, v] of Object.entries(t.fields)) next[k] = fields.find((f) => f.key === k)?.type === 'PHONE' ? formatPhone(v) : v
+        return next
+      })
+      if (!fields.some((f) => f.type === 'NOMINAL')) setRawAmount(String(t.amount))
+      setFromId(t.sourceAccountId)
+      if (directPay) setMode('pay')
+    }).catch(() => {})
+  }, [templateId])
 
   const sources = accounts?.filter((a) => a.kind !== 'external') ?? []
   const from = sources.find((a) => a.id === fromId) ?? (sources.length ? defaultSource(sources) : null)
@@ -310,7 +328,7 @@ function BillForm({ details }: { details: ProviderDetails }) {
 }
 
 // Что можно ввести в поле: цифры — только цифры, телефон — +7 XXX XXX-XX-XX
-function normalize(f: ProviderField, raw: string, localLength?: number) {
+export function normalize(f: ProviderField, raw: string, localLength?: number) {
   switch (f.type) {
     case 'DIGITS': return raw.replace(/\D/g, '').slice(0, 25)
     case 'LOCAL_PHONE': return raw.replace(/\D/g, '').slice(0, localLength ?? 12)
@@ -319,7 +337,7 @@ function normalize(f: ProviderField, raw: string, localLength?: number) {
   }
 }
 
-function fieldError(f: ProviderField, raw: string, fm: ProviderDetails['foreignMobile']) {
+export function fieldError(f: ProviderField, raw: string, fm: ProviderDetails['foreignMobile']) {
   const v = raw.trim()
   if (!v || (f.type === 'PHONE' && v === '+7')) return f.required ? (f.type === 'NOMINAL' ? 'Выберите номинал' : 'Обязательное поле') : undefined
   switch (f.type) {

@@ -211,6 +211,67 @@ export async function deleteSubscription(id: string) {
   if (!res.ok) throw new ApiError(res.status, 'Не удалось удалить шаблон')
 }
 
+// Шаблоны платежей и автоплатежи (сервис autopayments)
+export type SavedProvider = { code: string; groupCode: string; name: string; domain: string | null; color: string; countryCode: string | null }
+export type PaymentTemplate = {
+  id: string; name: string; provider: SavedProvider; fields: Record<string, string>; target: string | null
+  amount: number; sourceAccountId: string
+}
+export type Autopayment = {
+  id: string; name: string; provider: SavedProvider; fields: Record<string, string>; target: string | null; amount: number
+  sourceAccountId: string; backupAccountId: string | null; scheduleKind: 'MONTHLY' | 'PERIOD'
+  dayOfMonth: number | null; periodDays: number | null; startDate: string; nextRunDate: string
+  status: 'ACTIVE' | 'PAUSED'; lastRunDate: string | null; lastStatus: string | null; lastMessage: string | null
+}
+export type AutopaymentRun = {
+  id: string; runDate: string; status: 'PENDING' | 'SUCCESS' | 'FAILED' | 'PROCESSING'; paymentId: string | null
+  accountId: string | null; amount: number; commission: number | null; message: string | null
+}
+export type NewAutopayment = {
+  name?: string; providerCode: string; fields: Record<string, string>; amount: number; sourceAccountId: string
+  backupAccountId: string | null; scheduleKind: 'MONTHLY' | 'PERIOD'; dayOfMonth?: number; periodDays?: number; startDate?: string
+}
+
+export function fetchTemplates() {
+  return request<PaymentTemplate[]>('/api/autopayments/templates', { headers: asUser })
+}
+
+export function fetchTemplate(id: string) {
+  return request<PaymentTemplate>(`/api/autopayments/templates/${id}`, { headers: asUser })
+}
+
+export function saveTemplate(id: string | null, body: { name: string; providerCode: string; fields: Record<string, string>; amount: number; sourceAccountId: string }) {
+  return request<PaymentTemplate>(id ? `/api/autopayments/templates/${id}` : '/api/autopayments/templates', {
+    method: id ? 'PUT' : 'POST', headers: asUserJson, body: JSON.stringify(body),
+  })
+}
+
+export async function deleteTemplate(id: string) {
+  const res = await fetch(`/api/autopayments/templates/${id}`, { method: 'DELETE', headers: asUser })
+  if (!res.ok) throw new ApiError(res.status, 'Не удалось удалить шаблон')
+}
+
+export function fetchAutopayments() {
+  return request<Autopayment[]>('/api/autopayments', { headers: asUser })
+}
+
+export function fetchAutopayment(id: string) {
+  return request<{ autopayment: Autopayment; runs: AutopaymentRun[] }>(`/api/autopayments/${id}`, { headers: asUser })
+}
+
+export function createAutopayment(body: NewAutopayment) {
+  return request<Autopayment>('/api/autopayments', { method: 'POST', headers: asUserJson, body: JSON.stringify(body) })
+}
+
+export function setAutopaymentStatus(id: string, status: 'ACTIVE' | 'PAUSED') {
+  return request<Autopayment>(`/api/autopayments/${id}`, { method: 'PATCH', headers: asUserJson, body: JSON.stringify({ status }) })
+}
+
+export async function deleteAutopayment(id: string) {
+  const res = await fetch(`/api/autopayments/${id}`, { method: 'DELETE', headers: asUser })
+  if (!res.ok) throw new ApiError(res.status, 'Не удалось удалить автоплатёж')
+}
+
 export type Region = { code: string; name: string }
 
 export function fetchRegions() {

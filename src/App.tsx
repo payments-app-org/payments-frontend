@@ -22,6 +22,11 @@ import ProviderGroupPage from './pages/payments/ProviderGroupPage'
 import BillPaymentPage from './pages/payments/BillPaymentPage'
 import { PAYMENT_GROUPS } from './data/paymentGroups'
 import BillsPage from './pages/bills/BillsPage'
+import TemplatesPage from './pages/templates/TemplatesPage'
+import ChooseProviderPage from './pages/templates/ChooseProviderPage'
+import TemplateFormPage from './pages/templates/TemplateFormPage'
+import AutopaymentWizardPage from './pages/templates/AutopaymentWizardPage'
+import AutopaymentPage from './pages/templates/AutopaymentPage'
 import BillTemplatePage from './pages/bills/BillTemplatePage'
 import BillSubscriptionPage from './pages/bills/BillSubscriptionPage'
 import GovProviderPage from './pages/payments/GovProviderPage'
@@ -60,6 +65,13 @@ export default function App() {
             <Route path="/payments/gov/:code" element={<GovProviderPage />} />
             <Route path="/payments/loans" element={<LoansPage />} />
             <Route path="/payments/loans/:code" element={<LoanPaymentPage />} />
+            <Route path="/templates" element={<TemplatesPage />} />
+            <Route path="/templates/new" element={<ChooseProviderPage key="template" mode="template" />} />
+            <Route path="/templates/new/:code" element={<TemplateFormPage />} />
+            <Route path="/templates/:id/edit" element={<TemplateFormPage key="edit" />} />
+            <Route path="/autopayments/new" element={<ChooseProviderPage key="autopayment" mode="autopayment" />} />
+            <Route path="/autopayments/new/:code" element={<AutopaymentWizardPage />} />
+            <Route path="/autopayments/:id" element={<AutopaymentPage />} />
             <Route path="/bills" element={<BillsPage />} />
             <Route path="/bills/new/:code" element={<BillTemplatePage />} />
             <Route path="/bills/:id" element={<BillSubscriptionPage />} />

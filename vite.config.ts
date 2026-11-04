@@ -15,6 +15,7 @@ export default defineConfig({
       '/api/payments': process.env.PAYMENT_URL ?? 'http://localhost:8083',
       '/api/history': process.env.HISTORY_URL ?? 'http://localhost:8086',
       '/api/biller': process.env.BILLER_URL ?? 'http://localhost:8087',
+      '/api/autopayments': process.env.AUTOPAYMENTS_URL ?? 'http://localhost:8089',
     },
   },
 })

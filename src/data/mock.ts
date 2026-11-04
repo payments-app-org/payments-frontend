@@ -1,6 +1,5 @@
 // Моковые данные — то, что ещё не переехало в бэкенд
 
-export const templates = [{ id: 'yota', name: 'Yota', color: '#3fb6e8', to: '/payments/mobile/yota' }]
 
 export const paymentCategories = [
   { id: 'mobile', title: 'Мобильная связь', icon: 'Smartphone', to: '/payments/mobile' },
