@@ -1,7 +1,8 @@
-import { Check, Search } from 'lucide-react'
+import { Check } from 'lucide-react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import Icon from '../components/Icon'
 import InfoBlock from '../components/InfoBlock'
+import ProviderSearch from '../components/ProviderSearch'
 import { paymentCategories, templates, transferTypes } from '../data/mock'
 
 type Tab = 'payments' | 'transfers'
@@ -29,7 +30,7 @@ export default function PaymentsPage() {
           </div>
           <div className="template-list">
             {templates.map((t) => (
-              <div key={t.id} className="template">
+              <div key={t.id} className="template" role="button" onClick={() => navigate(t.to)}>
                 <span className="avatar big" style={{ background: t.color }}>{t.name[0]}</span>
                 <span className="small">{t.name}</span>
               </div>
@@ -43,12 +44,7 @@ export default function PaymentsPage() {
         <button className={tab === 'transfers' ? 'tab active' : 'tab'} onClick={() => setTab('transfers')}>Переводы</button>
       </div>
 
-      {tab === 'payments' && (
-        <label className="search">
-          <input placeholder="Например, ЖКХ Москвы" />
-          <Search size={20} />
-        </label>
-      )}
+      {tab === 'payments' && <ProviderSearch />}
 
       <div className="tiles">
         {(tab === 'payments' ? paymentCategories : transferTypes).map((item) => (

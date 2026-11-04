@@ -1,14 +1,14 @@
 // Моковые данные — то, что ещё не переехало в бэкенд
 
-export const templates = [{ id: 'yota', name: 'Yota', color: '#3fb6e8' }]
+export const templates = [{ id: 'yota', name: 'Yota', color: '#3fb6e8', to: '/payments/mobile/yota' }]
 
 export const paymentCategories = [
-  { id: 'mobile', title: 'Мобильная связь', icon: 'Smartphone' },
+  { id: 'mobile', title: 'Мобильная связь', icon: 'Smartphone', to: '/payments/mobile' },
   { id: 'games', title: 'Игры и сервисы', icon: 'Gamepad2' },
   { id: 'utilities', title: 'Услуги ЖКХ', icon: 'Bath' },
-  { id: 'gov', title: 'Госуслуги, штрафы, налоги', icon: 'Flag' },
+  { id: 'gov', title: 'Госуслуги, штрафы, налоги', icon: 'Flag', to: '/payments/gov' },
   { id: 'internet', title: 'Интернет и ТВ, Телефония', icon: 'MessageSquare' },
-  { id: 'loans', title: 'Погашение кредитов', icon: 'Percent' },
+  { id: 'loans', title: 'Погашение кредитов', icon: 'Percent', to: '/payments/loans' },
   { id: 'emoney', title: 'Электронные деньги', icon: 'Coins' },
   { id: 'transport', title: 'Транспорт', icon: 'Bus' },
   { id: 'foreign', title: 'Зарубежные операторы', icon: 'Radio' },

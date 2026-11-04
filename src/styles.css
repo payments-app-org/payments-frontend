@@ -87,7 +87,7 @@ h3 { font-size: 18px; margin: 0; font-weight: 600; }
 .search { display: flex; align-items: center; background: var(--panel); border: 1px solid #cfd2d9; border-radius: 12px; padding: 0 16px; height: 52px; margin-bottom: 32px; }
 .search input { flex: 1; border: 0; outline: 0; font: inherit; background: transparent; }
 
-.tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 64px; }
+.tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; margin-bottom: 64px; }
 .tile { background: var(--panel); border-radius: var(--radius); padding: 24px; min-height: 92px; display: flex; align-items: center; gap: 16px; text-align: left; font-weight: 600; font-size: 16px; transition: box-shadow .15s; }
 .tile:hover { box-shadow: 0 4px 16px rgba(0,0,0,.06); }
 
@@ -487,3 +487,27 @@ h3 { font-size: 18px; margin: 0; font-weight: 600; }
   .transfer-head, .transfer-body { padding-left: 16px; padding-right: 16px; }
   .group { padding: 20px; }
 }
+
+/* Платежи: поставщики, логотипы, поиск */
+.tiles-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.tiles.with-more { margin-bottom: 32px; }
+.show-more { margin-bottom: 64px; }
+.provider-logo { width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0; overflow: hidden; display: inline-flex; align-items: center; justify-content: center; background: #fff; }
+.provider-logo img { width: 100%; height: 100%; object-fit: contain; }
+.provider-logo.fallback { color: #fff; font-weight: 700; font-size: 16px; }
+.provider-logo.big { width: 64px; height: 64px; font-size: 26px; }
+.provider-logo.neutral { background: var(--soft); color: #8f949e; }
+.provider-search { position: relative; margin-bottom: 32px; }
+.provider-search .search { margin-bottom: 0; }
+.provider-search .search.focused { border-color: #3b82f6; }
+.search-clear { display: inline-flex; color: var(--muted); margin-right: 12px; }
+.search-menu { max-height: 320px; overflow-y: auto; }
+.search-menu .provider-logo { width: 32px; height: 32px; font-size: 13px; }
+.input-wrap { position: relative; display: block; }
+.input-wrap .input { width: 100%; }
+.input-help { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); color: #9a9da6; display: inline-flex; cursor: help; }
+.field-stack { display: flex; flex-direction: column; gap: 6px; }
+.form-note { background: var(--soft); border-radius: 8px; padding: 14px 16px; font-size: 14px; }
+.template[role=button] { cursor: pointer; }
+@media (max-width: 1100px) { .tiles-4 { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 640px) { .tiles-4 { grid-template-columns: 1fr; } }

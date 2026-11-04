@@ -44,7 +44,7 @@ type ApiAccount = {
   limits: AccountLimits | null
 }
 
-export type OperationType = 'SBP_PHONE' | 'CARD2CARD' | 'OWN_TRANSFER' | 'ABROAD' | 'WALLET_TRANSFER' | 'REQUISITES' | 'REQUISITES_OUR' | 'UIN_PAYMENT'
+export type OperationType = 'SBP_PHONE' | 'CARD2CARD' | 'OWN_TRANSFER' | 'ABROAD' | 'WALLET_TRANSFER' | 'REQUISITES' | 'REQUISITES_OUR' | 'UIN_PAYMENT' | 'MOBILE_PAYMENT'
 
 export type Commission = {
   amount: number
@@ -139,6 +139,28 @@ export function fetchCommission(operationType: OperationType, sourceAccountId: s
     body: JSON.stringify({ userId: CURRENT_USER_ID, sourceAccountId, operationType, amount, ...target }),
     signal,
   })
+}
+
+// Поставщики услуг из biller: операторы связи, госуслуги…
+export type Provider = {
+  id: number; code: string; groupCode: string; name: string; title: string; legalName: string | null
+  domain: string | null; color: string
+}
+export type GovDetails = { lookup: 'UIN' | 'STS_VU' | 'INN' | 'PASSPORT_INN' | 'FREE'; chargeKind: string | null; uinPrefix: string | null; description: string | null }
+export type ProviderDetails = { provider: Provider; gov: GovDetails | null }
+
+export function fetchProviders(params: { q?: string; group?: string }, signal?: AbortSignal) {
+  const qs = new URLSearchParams(Object.entries(params).filter(([, v]) => v) as [string, string][])
+  return request<Provider[]>(`/api/biller/providers?${qs}`, { signal })
+}
+
+export function fetchProvider(code: string, signal?: AbortSignal) {
+  return request<ProviderDetails>(`/api/biller/providers/${encodeURIComponent(code)}`, { signal })
+}
+
+// Оператор связи по номеру: +79964480061 → Yota
+export function fetchMobileOperator(phone: string, signal?: AbortSignal) {
+  return request<Provider>(`/api/biller/mobile/operator?phone=${encodeURIComponent(phone)}`, { signal })
 }
 
 // Минимальная сумма почти любого платежа (проверяет и payment)
@@ -259,7 +281,7 @@ export function useCommission(operationType: OperationType, sourceAccountId: str
 }
 
 export type PaymentRequest = {
-  type: 'SBP_PHONE' | 'CARD2CARD' | 'OWN_TRANSFER' | 'ABROAD' | 'WALLET_TRANSFER' | 'REQUISITES' | 'REQUISITES_OUR' | 'UIN_PAYMENT'
+  type: OperationType
   sourceAccountId: string
   recipientPhone?: string
   recipientBankId?: string
@@ -273,6 +295,8 @@ export type PaymentRequest = {
   recipientFields?: Record<string, string>
   // Госуслуги: id начисления из biller
   chargeId?: string
+  // Поставщик из biller: оператор связи (yota) или госпоставщик без поиска начислений (rosreestr)
+  providerCode?: string
   amount: number
   quoteToken: string
   message?: string

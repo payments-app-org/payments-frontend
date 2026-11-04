@@ -164,17 +164,19 @@ export function Success({ amount, to }: { amount: number; to: string }) {
 }
 
 // Итог платежа из сервиса payment: успех, отказ или «ещё обрабатывается»
-export function PaymentResult({ payment, to, onRetry, back = ['/?tab=transfers', 'Вернуться к переводам'] }: {
+export function PaymentResult({ payment, to, onRetry, back = ['/?tab=transfers', 'Вернуться к переводам'], what = 'Перевод' }: {
   payment: Payment
   to: string
   onRetry: () => void
   back?: [string, string]
+  // «Перевод выполнен» / «Платёж выполнен»
+  what?: 'Перевод' | 'Платёж'
 }) {
   if (payment.status === 'SUCCESS') {
     return (
       <div className="success">
         <CircleCheck size={56} strokeWidth={1.5} className="success-icon" />
-        <h2>Перевод выполнен</h2>
+        <h2>{what} выполнен</h2>
         <p className="muted-text">{formatRub(payment.amount)} · {to}<br />Комиссия {formatRub(payment.commission)}, списано {formatRub(payment.total)}</p>
         <Link to={back[0]} className="btn-primary link">{back[1]}</Link>
       </div>
@@ -184,7 +186,7 @@ export function PaymentResult({ payment, to, onRetry, back = ['/?tab=transfers',
     return (
       <div className="success">
         <CircleX size={56} strokeWidth={1.5} className="error-text" />
-        <h2>Перевод не выполнен</h2>
+        <h2>{what} не выполнен</h2>
         <p className="muted-text">{payment.message}</p>
         <button type="button" className="btn-primary link" onClick={onRetry}>Попробовать снова</button>
       </div>
@@ -193,7 +195,7 @@ export function PaymentResult({ payment, to, onRetry, back = ['/?tab=transfers',
   return (
     <div className="success">
       <LoaderCircle size={56} strokeWidth={1.5} className="muted spin" />
-      <h2>Перевод обрабатывается</h2>
+      <h2>{what} обрабатывается</h2>
       <p className="muted-text">Это может занять немного времени. Статус обновится сам.</p>
     </div>
   )

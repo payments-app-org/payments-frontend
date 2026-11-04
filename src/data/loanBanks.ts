@@ -1,0 +1,50 @@
+// Банки и МФО для «Погашения кредитов». Пока только витрина: сам платёж — на стороне команды кредитования.
+// by — чем идентифицируем кредит: номер счёта (20 цифр) или номер карты.
+export type LoanBank = { code: string; name: string; legalName: string; domain: string | null; color: string; by: 'account' | 'card' }
+
+const b = (code: string, name: string, legalName: string, domain: string | null, color: string, by: LoanBank['by'] = 'account'): LoanBank =>
+  ({ code, name, legalName, domain, color, by })
+
+export const loanBanks: LoanBank[] = [
+  b('mtsbank', 'МТС-Банк', 'МТС-Банк ПАО', 'mtsbank.ru', '#e30611'),
+  b('alfa', 'Альфа-банк по номеру счета', 'Альфа-Банк АО', 'alfabank.ru', '#ef3124'),
+  b('tbank', 'Т-Банк по номеру счета', 'Т-Банк АО', 'tbank.ru', '#ffdd2d'),
+  b('otp', 'ОТП Банк', 'ОТП Банк АО', 'otpbank.ru', '#52ae30'),
+  b('pochta', 'Почта Банк', 'Почта Банк АО', 'pochtabank.ru', '#1a37a1'),
+  b('avangard', 'АВАНГАРД', 'АКБ «Авангард» ПАО', 'avangard.ru', '#0f5a3a'),
+  b('uralsib', 'БАНК УРАЛСИБ по номеру счета', 'Банк Уралсиб ПАО', 'uralsib.ru', '#2b3f8f'),
+  b('bib', 'Балтинвестбанк', 'Балтинвестбанк ПАО', null, '#1b4f9c'),
+  b('zenit', 'Банк Зенит - Перевод по номеру карты', 'Банк Зенит ПАО', 'zenit.ru', '#17234a', 'card'),
+  b('intesa', 'Банк Интеза', 'Банк Интеза АО', 'bancaintesa.ru', '#d9822b'),
+  b('levoberezhny', 'Банк Левобережный', 'Банк Левобережный ПАО', 'nskbl.ru', '#1fa58f'),
+  b('rossiya', 'Банк Россия', 'АБ «Россия» АО', 'abr.ru', '#9aa4b2'),
+  b('bspb', 'Банк Санкт-Петербург', 'Банк «Санкт-Петербург» ПАО', 'bspb.ru', '#d9a092'),
+  b('sinara', 'Банк Синара (СКБ-Банк)', 'Банк Синара ПАО', 'sinara.ru', '#d5153a'),
+  b('vtb', 'ВТБ по номеру счета', 'ВТБ ПАО', 'vtb.ru', '#0a2896'),
+  b('vostochny', 'Восточный экспресс банк', 'Восточный экспресс банк ПАО', null, '#1d3e8f'),
+  b('guta', 'ГУТА-БАНК', 'ГУТА-БАНК АО', 'gutabank.ru', '#c4123d'),
+  b('gazprombank', 'Газпромбанк', 'Газпромбанк АО', 'gazprombank.ru', '#0b3c8c'),
+  b('kubankredit', 'Кубань Кредит', 'КБ «Кубань Кредит» ООО', 'kubankredit.ru', '#1d5ea8'),
+  b('loko', 'ЛокоБанк', 'КБ «ЛОКО-Банк» АО', 'lockobank.ru', '#0ea5e9'),
+  b('minb', 'МИнБ - пополнение счета', 'Московский Индустриальный банк ПАО', 'minbank.ru', '#8c1515'),
+  b('psb', 'Промсвязьбанк', 'Промсвязьбанк ПАО', 'psbank.ru', '#f26722'),
+  b('rgsbank', 'РОСГОССТРАХ БАНК', 'РОСГОССТРАХ БАНК ПАО', null, '#b8bec8'),
+  b('raiffeisen', 'Райффайзенбанк', 'Райффайзенбанк АО', 'raiffeisen.ru', '#fff200'),
+  b('renins', 'Ренессанс Банк', 'КБ «Ренессанс Кредит» ООО', 'rencredit.ru', '#e6007e'),
+  b('rshb', 'Россельхозбанк', 'Россельхозбанк АО', 'rshb.ru', '#00843d'),
+  b('siab', 'СИАБ по номеру карты', 'СИАБ ПАО', 'siab.ru', '#1c3f94', 'card'),
+  b('smp', 'СМП Банк', 'СМП Банк АО', 'smpbank.ru', '#00508c'),
+  b('sovcombank', 'Совкомбанк', 'Совкомбанк ПАО', 'sovcombank.ru', '#1d3e8f'),
+  b('toyota', 'Тойота Банк', 'Тойота Банк АО', 'toyota-bank.ru', '#c4161c'),
+  b('centrinvest-card', 'Центр-инвест по номеру карты', 'КБ «Центр-инвест» ПАО', 'centrinvest.ru', '#6cbb3c', 'card'),
+  b('centrinvest', 'Центр-инвест по номеру счета', 'КБ «Центр-инвест» ПАО', 'centrinvest.ru', '#6cbb3c'),
+  b('sber', 'Сбербанк', 'Сбербанк ПАО', 'sberbank.ru', '#21a038'),
+  b('proficredit', 'PROFI CREDIT', 'МФК «ПРОФИ КРЕДИТ Рус» ООО', null, '#e4002b'),
+  b('ligadeneg', 'Лига денег', 'МФК «Лига денег» ООО', 'ligadeneg.ru', '#5b2a6e'),
+  b('baibol', 'МКК Байбол', 'МКК «Байбол» ООО', null, '#d7262e'),
+  b('bystrodengi', 'МФК Быстроденьги', 'МФК «Быстроденьги» ООО', 'bistrodengi.ru', '#f7941d'),
+  b('microklad', 'Микроклад', 'МКК «Микроклад» ООО', null, '#7a0010'),
+  b('gpt', 'Гибкие Платежные Технологии', 'Гибкие Платежные Технологии ООО', null, '#7884a8'),
+  b('kreditline', 'МКК Кредит Лайн', 'МКК «Кредит Лайн» ООО', null, '#c8102e'),
+  b('rosbank', 'РОСБАНК', 'Росбанк ПАО', 'rosbank.ru', '#e2001a'),
+]
