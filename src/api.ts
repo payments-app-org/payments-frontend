@@ -154,7 +154,7 @@ export type ProviderField = {
   required: boolean; placeholder: string | null; hint: string | null; info: string | null; pattern: string | null
   dependsOn: string | null; options: { value: string; label: string; countryCode: string | null }[]
   // SEARCH — поле поиска счетов у поставщика («Найти»), PAY — поле оплаты; prefill — подставить данные клиента
-  stage: 'SEARCH' | 'PAY'; prefill: 'USER_FULL_NAME' | 'USER_PHONE' | null
+  stage: 'SEARCH' | 'PAY' | 'BOTH'; prefill: 'USER_FULL_NAME' | 'USER_PHONE' | null
 }
 export type Nominal = { id: number; region: string | null; name: string; price: number }
 // Счёт, найденный у поставщика по полям поиска
@@ -170,9 +170,17 @@ export type ProviderDetails = {
   transport: { kind: string; region: string } | null
   game: { kind: string; platform: string | null; deliveryNote: string | null } | null
   foreignMobile: { dialCode: string; numberLength: number; prefixes: string[]; operators: string; currency: string } | null
+  // ЖКХ: directPay — можно заплатить без поиска счёта (вкладки «Найти / Оплатить»), intro — пояснение над формой
+  utility: { kind: string; directPay: boolean; intro: string | null } | null
 }
 
-export function fetchProviders(params: { q?: string; group?: string }, signal?: AbortSignal) {
+export type Region = { code: string; name: string }
+
+export function fetchRegions() {
+  return request<Region[]>('/api/biller/regions')
+}
+
+export function fetchProviders(params: { q?: string; group?: string; region?: string }, signal?: AbortSignal) {
   const qs = new URLSearchParams(Object.entries(params).filter(([, v]) => v) as [string, string][])
   return request<Provider[]>(`/api/biller/providers?${qs}`, { signal })
 }

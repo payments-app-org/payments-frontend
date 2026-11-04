@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { ChevronDown, FileText, Landmark, Search } from 'lucide-react'
+import { FileText, Landmark, Search } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import InfoBlock from '../../components/InfoBlock'
+import RegionSelect from '../../components/RegionSelect'
 
 const OPTIONS = [
   { to: '/transfers/requisites/uin', title: 'Оплата по УИН', icon: 'gov' },
@@ -17,7 +18,7 @@ export default function RequisitesPage() {
   return (
     <>
       <h1>Свободные реквизиты</h1>
-      <button type="button" className="region-link">Регион: Москва и Московская область <ChevronDown size={16} /></button>
+      <RegionSelect />
       <label className="search">
         <input placeholder="Например, ЖКХ Москвы" value={q} onChange={(e) => setQ(e.target.value)} />
         <Search size={20} />

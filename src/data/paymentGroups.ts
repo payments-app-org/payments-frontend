@@ -11,6 +11,9 @@ export const PAYMENT_GROUPS = [
   { group: 'INSURANCE', path: '/payments/insurance', title: 'Страхование', back: 'Страхование' },
   { group: 'SECURITY', path: '/payments/security', title: 'Охранные системы', back: 'Охранные системы' },
   { group: 'DONATIONS', path: '/payments/donations', title: 'Пожертвования', back: 'Пожертвования' },
+  { group: 'UTILITIES', path: '/payments/utilities', title: 'Услуги ЖКХ', back: 'Услуги ЖКХ' },
+  { group: 'INTERNET', path: '/payments/internet', title: 'Интернет и ТВ, Телефония', back: 'Интернет и ТВ' },
+  { group: 'MISC', path: '/payments/misc', title: 'Разное', back: 'Разное' },
 ] as const
 
 export function groupPage(group: string) {

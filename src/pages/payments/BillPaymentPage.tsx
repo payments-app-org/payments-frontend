@@ -55,7 +55,7 @@ export default function BillPaymentPage() {
 }
 
 function BillForm({ details }: { details: ProviderDetails }) {
-  const { provider, fields, nominals, foreignMobile, game } = details
+  const { provider, fields, nominals, foreignMobile, game, utility } = details
   const { accounts } = useAccounts()
   const limits = useOperationLimits()
   const payment = usePaymentSubmit()
@@ -66,9 +66,15 @@ function BillForm({ details }: { details: ProviderDetails }) {
     ...fields.filter((f) => f.type === 'MONTH').map((f) => [f.key, thisMonth()]),
   ]))
   // Поиск счетов у поставщика (поля stage = SEARCH): найденные счета и выбранный
-  const searchFields = fields.filter((f) => f.stage === 'SEARCH')
-  const payFields = fields.filter((f) => f.stage !== 'SEARCH')
-  const lookup = searchFields.length > 0
+  // ЖКХ Москвы и др.: вкладки «Найти» (счёт у поставщика) и «Оплатить» (произвольная сумма без поиска)
+  const hasSearch = fields.some((f) => f.stage === 'SEARCH')
+  const directPay = hasSearch && !!utility?.directPay
+  const [mode, setMode] = useState<'search' | 'pay'>('search')
+  const lookup = hasSearch && mode === 'search'
+  const searchFields = fields.filter((f) => f.stage === 'SEARCH' || f.stage === 'BOTH')
+  // Поля, которые уйдут в платёж: при поиске — все, при «Оплатить» — без полей только для поиска
+  const activeFields = lookup ? fields : fields.filter((f) => f.stage !== 'SEARCH')
+  const payFields = lookup ? fields.filter((f) => f.stage === 'PAY') : activeFields
   const [invoices, setInvoices] = useState<Invoice[] | null>(null)
   const [invoiceId, setInvoiceId] = useState<string | null>(null)
   const [searching, setSearching] = useState(false)
@@ -124,7 +130,7 @@ function BillForm({ details }: { details: ProviderDetails }) {
     : amount > 0 && amount < min ? `Минимальная сумма — ${formatRub(min)}`
     : amountError(totalOf(commission, amount), from, amount, max === Infinity ? null : max)
 
-  const errors = Object.fromEntries(fields.map((f) => [f.key, fieldError(f, values[f.key] ?? '', foreignMobile)]))
+  const errors = Object.fromEntries(activeFields.map((f) => [f.key, fieldError(f, values[f.key] ?? '', foreignMobile)]))
   const fieldsOk = Object.values(errors).every((e) => !e)
   const searchOk = searchFields.every((f) => !errors[f.key])
   const valid = fieldsOk && (!lookup || !!invoice) && amount > 0 && !amountErr && !!from && commission.status === 'ready'
@@ -139,14 +145,14 @@ function BillForm({ details }: { details: ProviderDetails }) {
     setTried(true)
     if (!valid || submitting || commission.status !== 'ready' || !from) return
     const recipientFields: Record<string, string> = {}
-    for (const f of fields) {
+    for (const f of activeFields) {
       const v = (values[f.key] ?? '').trim()
       if (!v) continue
       recipientFields[f.key] = f.type === 'PHONE' ? `+${v.replace(/\D/g, '')}` : f.type === 'LOCAL_PHONE' || f.type === 'DIGITS' ? v.replace(/\D/g, '') : v
     }
     payment.submit({
       type: 'BILL', sourceAccountId: from.id, providerCode: provider.code, recipientFields, amount,
-      quoteToken: commission.data.quoteToken, chargeId: invoice?.id,
+      quoteToken: commission.data.quoteToken, chargeId: lookup ? invoice?.id : undefined,
     })
   }
 
@@ -241,6 +247,17 @@ function BillForm({ details }: { details: ProviderDetails }) {
 
   return (
     <form className="form" onSubmit={submit}>
+      {utility?.intro && <p className="bill-intro">{utility.intro}</p>}
+      {directPay && (
+        <div className="bill-tabs">
+          {(['search', 'pay'] as const).map((m) => (
+            <button type="button" key={m} className={mode === m ? 'active' : ''}
+              onClick={() => { setMode(m); setInvoices(null); setInvoiceId(null); setTried(false) }}>
+              {m === 'search' ? 'Найти' : 'Оплатить'}
+            </button>
+          ))}
+        </div>
+      )}
       {lookup && (
         <>
           {searchFields.map(renderField)}

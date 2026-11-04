@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { fetchProviders, type Provider } from '../api'
 import { loanBanks } from '../data/loanBanks'
 import ProviderLogo from './ProviderLogo'
+import { useRegion } from '../region'
 
 type Hit = { key: string; name: string; domain: string | null; color: string; country?: string | null; to: string }
 
@@ -23,6 +24,7 @@ export default function ProviderSearch() {
   const [active, setActive] = useState(0)
   const ref = useRef<HTMLDivElement>(null)
   const query = q.trim()
+  const { code: region } = useRegion()
 
   useEffect(() => {
     if (query.length < 2) {
@@ -34,13 +36,13 @@ export default function ProviderSearch() {
       const loans: Hit[] = loanBanks
         .filter((b) => b.name.toLowerCase().includes(query.toLowerCase()))
         .map((b) => ({ key: `loan-${b.code}`, name: b.name, domain: b.domain, color: b.color, to: `/payments/loans/${b.code}` }))
-      fetchProviders({ q: query }, ctrl.signal)
+      fetchProviders({ q: query, region }, ctrl.signal)
         .then((list) => setHits([...list.map((p) => ({ key: p.code, name: p.name, domain: p.domain, color: p.color, country: p.countryCode, to: providerRoute(p) })), ...loans]))
         .catch((e) => { if (e.name !== 'AbortError') setHits(loans) })
       setActive(0)
     }, 250)
     return () => { clearTimeout(t); ctrl.abort() }
-  }, [query])
+  }, [query, region])
 
   useEffect(() => {
     if (!open) return
