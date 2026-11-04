@@ -44,7 +44,7 @@ type ApiAccount = {
   limits: AccountLimits | null
 }
 
-export type OperationType = 'SBP_PHONE' | 'CARD2CARD' | 'OWN_TRANSFER'
+export type OperationType = 'SBP_PHONE' | 'CARD2CARD' | 'OWN_TRANSFER' | 'ABROAD' | 'WALLET_TRANSFER' | 'REQUISITES' | 'REQUISITES_OUR' | 'UIN_PAYMENT'
 
 export type Commission = {
   amount: number
@@ -141,6 +141,36 @@ export function fetchCommission(operationType: OperationType, sourceAccountId: s
   })
 }
 
+// Минимальная сумма почти любого платежа (проверяет и payment)
+export const MIN_AMOUNT = 10
+
+type OperationLimit = { operationType: string; period: 'SINGLE' | 'DAY' | 'MONTH'; maxAmount: number }
+let limitsCache: Promise<OperationLimit[]> | null = null
+
+// Лимиты пользователя на виды операций — грузим один раз за сессию страницы
+export function useOperationLimits() {
+  const [limits, setLimits] = useState<OperationLimit[]>([])
+  useEffect(() => {
+    limitsCache ??= request<OperationLimit[]>(`/api/users/${CURRENT_USER_ID}/operation-limits`).catch(() => [])
+    limitsCache.then(setLimits)
+  }, [])
+  return limits
+}
+
+// Верхняя граница суммы: меньший из лимитов — на одну операцию этого вида и на платёж со счёта
+export function maxPaymentAmount(limits: OperationLimit[], operationType: string, account: Account | null) {
+  const caps = [
+    limits.find((l) => l.operationType === operationType && l.period === 'SINGLE')?.maxAmount,
+    account?.limits?.maxPayment ?? undefined,
+  ].filter((v): v is number => typeof v === 'number')
+  return caps.length ? Math.min(...caps) : null
+}
+
+// Справочник СБП: в каких банках у владельца телефона есть счёт
+export function fetchSbpBanks(phone: string, signal?: AbortSignal) {
+  return request<{ banks: string[] }>(`/api/payments/sbp/banks?phone=${encodeURIComponent(phone)}`, { signal }).then((r) => r.banks)
+}
+
 export type Profile = {
   id: string
   displayName: string
@@ -229,7 +259,7 @@ export function useCommission(operationType: OperationType, sourceAccountId: str
 }
 
 export type PaymentRequest = {
-  type: 'SBP_PHONE' | 'CARD2CARD' | 'OWN_TRANSFER' | 'ABROAD'
+  type: 'SBP_PHONE' | 'CARD2CARD' | 'OWN_TRANSFER' | 'ABROAD' | 'WALLET_TRANSFER' | 'REQUISITES' | 'REQUISITES_OUR' | 'UIN_PAYMENT'
   sourceAccountId: string
   recipientPhone?: string
   recipientBankId?: string
@@ -241,6 +271,8 @@ export type PaymentRequest = {
   receiveAmount?: number
   transferMethodId?: number
   recipientFields?: Record<string, string>
+  // Госуслуги: id начисления из biller
+  chargeId?: string
   amount: number
   quoteToken: string
   message?: string

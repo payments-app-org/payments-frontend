@@ -18,7 +18,7 @@ export const paymentCategories = [
   { id: 'insurance', title: 'Страхование', icon: 'ShieldCheck' },
   { id: 'security', title: 'Охранные системы', icon: 'Video' },
   { id: 'donations', title: 'Пожертвования', icon: 'HeartHandshake' },
-  { id: 'free', title: 'Свободные реквизиты', icon: 'FileText' },
+  { id: 'free', title: 'Свободные реквизиты', icon: 'FileText', to: '/transfers/requisites' },
   { id: 'misc', title: 'Разное', icon: 'Ellipsis' },
   { id: 'steam', title: 'Они вернулись! – Steam, Playstation, Spotify…', icon: 'Gamepad2' },
 ] as const
@@ -28,8 +28,8 @@ export const transferTypes = [
   { id: 'card', title: 'По номеру карты', icon: 'CreditCard', to: '/transfers/card' },
   { id: 'own', title: 'Между своими счетами', icon: 'ArrowLeftRight', to: '/transfers/own' },
   { id: 'abroad', title: 'За рубеж', icon: 'Globe', to: '/transfers/abroad' },
-  { id: 'requisites', title: 'По реквизитам', icon: 'File' },
-  { id: 'wallet', title: 'На кошелек', icon: 'Wallet' },
+  { id: 'requisites', title: 'По реквизитам', icon: 'File', to: '/transfers/requisites' },
+  { id: 'wallet', title: 'На кошелек', icon: 'Wallet', to: '/transfers/wallet' },
 ] as const
 
 export const documents = [

@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { defaultSource, useAccounts, useCommission, usePaymentSubmit } from '../../api'
+import { defaultSource, fetchSbpBanks, useAccounts, useCommission, usePaymentSubmit, maxPaymentAmount, useOperationLimits } from '../../api'
 import {
-  AccountSelect, AmountInput, Field, PaymentResult, SubmitButton, Summary, TransferLayout, amountError, parseAmount, totalOf,
+  AmountHint, AccountSelect, AmountInput, Field, PaymentResult, SubmitButton, Summary, TransferLayout, amountError, parseAmount, totalOf,
 } from '../../components/transfer'
 import BankSelect from '../../components/BankSelect'
 import { banks, type Bank } from '../../data/banks'
@@ -33,14 +33,27 @@ export default function PhoneTransferPage() {
   const [rawAmount, setRawAmount] = useState('')
   const [quoteRefresh, setQuoteRefresh] = useState(0)
   const payment = usePaymentSubmit()
+  const limits = useOperationLimits()
 
   const from = accounts?.find((a) => a.id === fromId) ?? defaultSource(accounts)
   const amount = parseAmount(rawAmount)
   const commission = useCommission('SBP_PHONE', from?.id, amount, quoteRefresh)
-  const amountErr = amountError(totalOf(commission, amount), from)
+  const amountErr = amountError(totalOf(commission, amount), from, amount, maxPaymentAmount(limits, 'SBP_PHONE', from))
   const phoneDigits = phone.replace(/\D/g, '')
+
+  // Справочник СБП: в каких банках у получателя есть счёт — проверяем параллельно с расчётом комиссии
+  const [sbpBanks, setSbpBanks] = useState<string[] | null>(null)
+  useEffect(() => {
+    setSbpBanks(null)
+    if (phoneDigits.length !== 11) return
+    const controller = new AbortController()
+    fetchSbpBanks(`+${phoneDigits}`, controller.signal).then(setSbpBanks, () => {})
+    return () => controller.abort()
+  }, [phoneDigits])
+  const bankMissing = !!bank && !!sbpBanks && !sbpBanks.includes(bank.id)
+  const availableBanks = sbpBanks ? banks.filter((b) => sbpBanks.includes(b.id)).map((b) => b.name).join(', ') : null
   // Банк необязателен: не выбран из списка — payment возьмёт банк по умолчанию получателя
-  const valid = !!from && phoneDigits.length === 11 && commission.status === 'ready' && !amountErr
+  const valid = !!from && phoneDigits.length === 11 && commission.status === 'ready' && !amountErr && !bankMissing
   const submitting = payment.state.status === 'submitting'
 
   const submit = (e: FormEvent) => {
@@ -88,14 +101,16 @@ export default function PhoneTransferPage() {
         <div className="field">
           <span className="field-label">Банк получателя</span>
           <BankSelect text={bankText} value={bank} onChange={(text, b) => { setBankText(text); setBank(b) }} />
+          {bankMissing && <span className="field-error">У получателя нет счёта в этом банке{availableBanks ? `. Есть в: ${availableBanks}` : ''}</span>}
+          {!bankMissing && bank && availableBanks && <span className="field-hint">Счёт получателя есть в: {availableBanks}</span>}
           {!bank && <span className="field-hint">{bankText.trim()
             ? 'Такого банка нет в списке — переведём в банк получателя по умолчанию'
-            : 'Не выбран — переведём в банк получателя по умолчанию'}</span>}
+            : 'Не выбран — переведём в банк получателя по умолчанию'}{availableBanks ? `. Счёт есть в: ${availableBanks}` : ''}</span>}
         </div>
         <Field label="Сообщение получателю" hint={`${message.length}/${MESSAGE_MAX}`}>
           <input className="input" placeholder="Введите сообщение" maxLength={MESSAGE_MAX} value={message} onChange={(e) => setMessage(e.target.value)} />
         </Field>
-        <Field label="Сумма перевода" error={amountErr}>
+        <Field label="Сумма перевода" error={amountErr} hint={<AmountHint operationType="SBP_PHONE" account={from} />}>
           <AmountInput value={rawAmount} onChange={setRawAmount} placeholder="Введите сумму" />
         </Field>
         <Summary state={commission} />

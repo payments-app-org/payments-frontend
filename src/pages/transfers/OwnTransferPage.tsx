@@ -1,8 +1,8 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { defaultSource, useAccounts, useCommission, usePaymentSubmit, type Account } from '../../api'
+import { defaultSource, useAccounts, useCommission, usePaymentSubmit, type Account, maxPaymentAmount, useOperationLimits } from '../../api'
 import {
-  AccountSelect, AmountInput, Field, PaymentResult, SubmitButton, Summary, TransferLayout, amountError, parseAmount, totalOf,
+  AmountHint, AccountSelect, AmountInput, Field, PaymentResult, SubmitButton, Summary, TransferLayout, amountError, parseAmount, totalOf,
 } from '../../components/transfer'
 
 export default function OwnTransferPage() {
@@ -13,6 +13,7 @@ export default function OwnTransferPage() {
   const [quoteRefresh, setQuoteRefresh] = useState(0)
   const [params] = useSearchParams()
   const payment = usePaymentSubmit()
+  const limits = useOperationLimits()
 
   // Берём счета из свежего списка: после перевода балансы обновятся и в выпадающих списках
   const to = accounts.find((a) => a.id === toId) ?? null
@@ -29,7 +30,7 @@ export default function OwnTransferPage() {
 
   const amount = parseAmount(rawAmount)
   const commission = useCommission('OWN_TRANSFER', from?.id, amount, quoteRefresh, to ? { destinationAccountId: to.id } : null)
-  const amountErr = amountError(totalOf(commission, amount), from)
+  const amountErr = amountError(totalOf(commission, amount), from, amount, maxPaymentAmount(limits, 'OWN_TRANSFER', from))
   const valid = !!from && !!to && from.id !== to.id && commission.status === 'ready' && !amountErr
   const submitting = payment.state.status === 'submitting'
 
@@ -78,7 +79,7 @@ export default function OwnTransferPage() {
         <Field label="Зачислить на">
           <AccountSelect accounts={accounts.filter((a) => a.id !== from?.id && a.kind !== 'external')} value={to} onChange={(a) => setToId(a.id)} placeholder="Выберите источник зачисления" />
         </Field>
-        <Field label="Сумма перевода" error={amountErr}>
+        <Field label="Сумма перевода" error={amountErr} hint={<AmountHint operationType="OWN_TRANSFER" account={from} />}>
           <AmountInput value={rawAmount} onChange={setRawAmount} />
         </Field>
         <Summary state={commission} />

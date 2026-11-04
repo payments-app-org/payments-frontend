@@ -448,6 +448,28 @@ h3 { font-size: 18px; margin: 0; font-weight: 600; }
 .abroad-actions { display: flex; gap: 12px; }
 .abroad-actions .btn-primary { align-self: auto; }
 
+.amount-hint { font-size: 13px; color: var(--muted); }
+.region-link { display: inline-flex; align-items: center; gap: 4px; color: #3b82f6; font-size: 16px; margin: -16px 0 20px; }
+.tile-small { min-height: 80px; font-size: 14px; }
+.gov-logo, .doc-logo { width: 40px; height: 40px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.gov-logo { background: linear-gradient(160deg, #0d4cd3 0%, #ee3f58 100%); color: #fff; }
+.doc-logo { background: #8f949e; color: #fff; }
+.gov-logo.big, .doc-logo.big { width: 56px; height: 56px; border-radius: 16px; }
+.requisites-title { display: flex; align-items: center; gap: 20px; }
+.requisites-title h1 { font-size: 24px; margin: 0 0 6px; }
+.requisites-subtitle { font-weight: 600; }
+.pay-row { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.pay-row .btn-primary { align-self: auto; }
+.offer-note { font-size: 13px; color: #6b6e77; max-width: 320px; }
+.offer-note a { color: #1a35d6; text-decoration: none; }
+.charges { margin-top: 32px; }
+.charge-card { display: flex; justify-content: space-between; gap: 16px; padding: 18px 20px; border-radius: 16px; background: var(--soft); text-align: left; border: 2px solid transparent; }
+.charge-card.active { border-color: var(--dark); background: #fff; }
+.charge-main { display: flex; flex-direction: column; gap: 4px; }
+.charge-main .muted { font-size: 13px; }
+.charge-amount { text-align: right; display: flex; flex-direction: column; gap: 4px; white-space: nowrap; font-size: 17px; }
+.charge-amount .cashback { font-size: 12px; }
+
 @media (max-width: 1000px) {
   .layout { grid-template-columns: 1fr; gap: 24px; padding: 24px 16px; }
   .tiles, .docs { grid-template-columns: 1fr 1fr; }

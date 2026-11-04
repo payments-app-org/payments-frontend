@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { ChevronDown, ChevronLeft, CircleCheck, CircleX, LoaderCircle, Wallet } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import type { Account, CommissionState, Payment } from '../api'
+import { MIN_AMOUNT, maxPaymentAmount, useOperationLimits, type Account, type CommissionState, type Payment } from '../api'
 import { formatRub, tariffLabel } from '../format'
 import PaymentSystemBadge from './PaymentSystemBadge'
 
@@ -91,10 +91,20 @@ export function parseAmount(raw: string) {
   return Number.isFinite(n) ? n : 0
 }
 
-export function amountError(amount: number, from: Account | null) {
+// total — сумма вместе с комиссией (её сверяем с балансом), amount — сама сумма перевода (её — с минимумом и лимитом)
+export function amountError(total: number, from: Account | null, amount = total, max: number | null = null) {
+  if (amount > 0 && amount < MIN_AMOUNT) return `Минимальная сумма — ${MIN_AMOUNT} ₽`
+  if (max !== null && amount > max) return `Максимальная сумма — ${formatRub(max)}`
   // Баланс карты другого банка неизвестен — проверит процессинг
-  if (from && from.balance !== null && amount > from.balance) return 'Недостаточно средств'
+  if (from && from.balance !== null && total > from.balance) return 'Недостаточно средств'
   return undefined
+}
+
+// Плашка под суммой: «От 10 ₽ до 50 000 ₽»
+export function AmountHint({ operationType, account }: { operationType: string; account: Account | null }) {
+  const limits = useOperationLimits()
+  const max = maxPaymentAmount(limits, operationType, account)
+  return <span className="amount-hint">От {formatRub(MIN_AMOUNT)}{max !== null ? ` до ${formatRub(max)}` : ''}</span>
 }
 
 export function AmountInput({ value, onChange, placeholder = '0 ₽' }: { value: string; onChange: (v: string) => void; placeholder?: string }) {

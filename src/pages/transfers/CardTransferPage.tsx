@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { defaultSource, useAccounts, useCommission, usePaymentSubmit } from '../../api'
+import { defaultSource, useAccounts, useCommission, usePaymentSubmit, maxPaymentAmount, useOperationLimits } from '../../api'
 import {
-  AccountSelect, AmountInput, Field, PaymentResult, SubmitButton, Summary, TransferLayout, amountError, parseAmount, totalOf,
+  AmountHint, AccountSelect, AmountInput, Field, PaymentResult, SubmitButton, Summary, TransferLayout, amountError, parseAmount, totalOf,
 } from '../../components/transfer'
 
 function formatCard(raw: string) {
@@ -26,6 +26,7 @@ export default function CardTransferPage() {
   const [rawAmount, setRawAmount] = useState('')
   const [quoteRefresh, setQuoteRefresh] = useState(0)
   const payment = usePaymentSubmit()
+  const limits = useOperationLimits()
 
   const digits = cardNumber.replace(/\D/g, '')
   const cardErr = digits.length === 16 && !luhn(digits) ? 'Проверьте номер карты' : undefined
@@ -34,7 +35,7 @@ export default function CardTransferPage() {
   // Тариф зависит от карты получателя (наша или другого банка) — считаем, когда номер введён полностью
   const cardReady = digits.length === 16 && !cardErr
   const commission = useCommission('CARD2CARD', from?.id, amount, quoteRefresh, cardReady ? { recipientCardNumber: digits } : null)
-  const amountErr = amountError(totalOf(commission, amount), from)
+  const amountErr = amountError(totalOf(commission, amount), from, amount, maxPaymentAmount(limits, 'CARD2CARD', from))
   const valid = !!from && cardReady && commission.status === 'ready' && !amountErr
   const submitting = payment.state.status === 'submitting'
 
@@ -82,7 +83,7 @@ export default function CardTransferPage() {
             <input className="input" inputMode="numeric" placeholder="1234 4567 8901 2345" value={cardNumber} onChange={(e) => setCardNumber(formatCard(e.target.value))} />
           </Field>
         </div>
-        <Field label="Сумма перевода" error={amountErr}>
+        <Field label="Сумма перевода" error={amountErr} hint={<AmountHint operationType="CARD2CARD" account={from} />}>
           <AmountInput value={rawAmount} onChange={setRawAmount} />
         </Field>
         <Summary state={commission} />
