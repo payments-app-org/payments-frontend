@@ -174,6 +174,43 @@ export type ProviderDetails = {
   utility: { kind: string; directPay: boolean; intro: string | null } | null
 }
 
+// «Счета на оплату»: шаблон пользователя (поставщик + данные плательщика) и неоплаченные счета по нему
+export type Subscription = {
+  id: string; name: string; provider: Provider; fields: Record<string, string>
+  checkedAt: string | null; unpaidCount: number; unpaidTotal: number
+}
+export type SubscriptionBill = {
+  id: string; kind: 'CHARGE' | 'INVOICE'; title: string; description: string | null; amount: number; fullAmount: number
+  discountUntil: string | null; dueDate: string | null
+}
+export type SubscriptionWithBills = { subscription: Subscription; bills: SubscriptionBill[] }
+
+const asUser = { 'X-User-Id': CURRENT_USER_ID }
+const asUserJson = { ...asUser, 'Content-Type': 'application/json' }
+
+export function fetchSubscriptionProviders(region: string) {
+  return request<Provider[]>(`/api/biller/subscription-providers?region=${encodeURIComponent(region)}`)
+}
+
+export function fetchSubscriptions() {
+  return request<Subscription[]>('/api/biller/subscriptions', { headers: asUser })
+}
+
+export function fetchSubscription(id: string) {
+  return request<SubscriptionWithBills>(`/api/biller/subscriptions/${id}`, { headers: asUser })
+}
+
+export function saveSubscription(id: string | null, body: { providerCode?: string; name: string; fields: Record<string, string> }) {
+  return request<SubscriptionWithBills>(id ? `/api/biller/subscriptions/${id}` : '/api/biller/subscriptions', {
+    method: id ? 'PUT' : 'POST', headers: asUserJson, body: JSON.stringify(body),
+  })
+}
+
+export async function deleteSubscription(id: string) {
+  const res = await fetch(`/api/biller/subscriptions/${id}`, { method: 'DELETE', headers: asUser })
+  if (!res.ok) throw new ApiError(res.status, 'Не удалось удалить шаблон')
+}
+
 export type Region = { code: string; name: string }
 
 export function fetchRegions() {

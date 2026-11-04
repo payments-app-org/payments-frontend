@@ -21,6 +21,9 @@ import MobilePaymentPage from './pages/payments/MobilePaymentPage'
 import ProviderGroupPage from './pages/payments/ProviderGroupPage'
 import BillPaymentPage from './pages/payments/BillPaymentPage'
 import { PAYMENT_GROUPS } from './data/paymentGroups'
+import BillsPage from './pages/bills/BillsPage'
+import BillTemplatePage from './pages/bills/BillTemplatePage'
+import BillSubscriptionPage from './pages/bills/BillSubscriptionPage'
 import GovProviderPage from './pages/payments/GovProviderPage'
 import LoansPage from './pages/payments/LoansPage'
 import LoanPaymentPage from './pages/payments/LoanPaymentPage'
@@ -57,6 +60,10 @@ export default function App() {
             <Route path="/payments/gov/:code" element={<GovProviderPage />} />
             <Route path="/payments/loans" element={<LoansPage />} />
             <Route path="/payments/loans/:code" element={<LoanPaymentPage />} />
+            <Route path="/bills" element={<BillsPage />} />
+            <Route path="/bills/new/:code" element={<BillTemplatePage />} />
+            <Route path="/bills/:id" element={<BillSubscriptionPage />} />
+            <Route path="/bills/:id/edit" element={<BillTemplatePage key="edit" />} />
             <Route path="/cards" element={<CardsPage />} />
             <Route path="/wallet" element={<WalletPage />} />
             <Route path="/wallet/conditions" element={<WalletConditionsPage />} />

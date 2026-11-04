@@ -1,4 +1,4 @@
-import { Check } from 'lucide-react'
+import { ChevronRight } from 'lucide-react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import Icon from '../components/Icon'
 import InfoBlock from '../components/InfoBlock'
@@ -18,11 +18,11 @@ export default function PaymentsPage() {
       <h1>Платежи и переводы</h1>
 
       <div className="top-cards">
-        <section className="panel bills">
+        <button type="button" className="panel bills bills-link" onClick={() => navigate('/bills')}>
           <h3>Счета на оплату</h3>
-          <span className="round-icon big"><span className="check"><Check size={12} /></span></span>
-          <div className="small center">Нет новых<br />счетов</div>
-        </section>
+          <span className="small muted">ЖКХ, налоги, штрафы, интернет</span>
+          <ChevronRight size={20} className="muted bills-chevron" />
+        </button>
         <section className="panel templates">
           <div className="panel-head">
             <h3>Шаблоны</h3>
