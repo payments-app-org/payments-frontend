@@ -17,7 +17,8 @@ export default function WalletTopUpPage() {
   const [quoteError, setQuoteError] = useState<string | null>(null)
 
   const wallet = accounts?.find((a) => a.kind === 'wallet') ?? null
-  const sources = accounts?.filter((a) => a.kind !== 'wallet') ?? []
+  // Кредитной картой кошелёк не пополнить (электронные деньги нельзя получить в кредит)
+  const sources = accounts?.filter((a) => a.kind !== 'wallet' && !a.credit) ?? []
   const source = sources.find((a) => a.id === sourceId) ?? null
   const amount = parseAmount(rawAmount)
   const tooMuch = !!source && source.balance !== null && amount > source.balance

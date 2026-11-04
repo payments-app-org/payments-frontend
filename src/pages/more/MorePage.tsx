@@ -1,6 +1,6 @@
 import { ChevronRight, HeartHandshake } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { useProfile } from '../../api'
+import { SUBSCRIPTION_LABEL, useProfile } from '../../api'
 import { formatRub } from '../../format'
 import { formatPhone } from '../payments/MobilePaymentPage'
 
@@ -28,6 +28,13 @@ export default function MorePage() {
         <div>
           <h2>{fullName || 'Загружаем…'}</h2>
           {profile?.phone && <div className="muted">{formatPhone(profile.phone)}</div>}
+          {profile && (
+            <div className="profile-badges">
+              <span className={profile.subscription === 'NONE' ? 'profile-badge' : 'profile-badge premium'}>
+                {SUBSCRIPTION_LABEL[profile.subscription]}
+              </span>
+            </div>
+          )}
         </div>
       </section>
       <section className="panel choose-panel">

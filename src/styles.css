@@ -630,3 +630,33 @@ h3 { font-size: 18px; margin: 0; font-weight: 600; }
 .roundup-examples { display: flex; flex-direction: column; gap: 12px; }
 .roundup-example { display: flex; align-items: center; gap: 16px; }
 .roundup-note { color: #1baf7a; font-weight: 500; margin: 0; }
+
+/* Документы «Информация об оказываемых услугах» */
+.doc-page { padding: 24px 32px 40px; }
+.doc-actions { display: flex; justify-content: flex-end; }
+.doc-actions .btn-secondary { display: inline-flex; align-items: center; gap: 8px; }
+.doc-paper { background: var(--panel); padding: 8px 8px 0; }
+.doc-head { display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; border-bottom: 1px solid var(--line); margin-bottom: 28px; }
+.doc-head .logo { font-size: 26px; }
+.doc-paper h1 { font-size: 30px; margin-bottom: 12px; }
+.doc-lead { color: var(--muted); font-size: 16px; line-height: 1.5; margin: 0 0 32px; max-width: 760px; }
+.doc-section { margin-bottom: 32px; }
+.doc-section h2 { display: flex; align-items: center; gap: 12px; font-size: 20px; margin: 0 0 14px; }
+.doc-section h2 span { width: 30px; height: 30px; border-radius: 50%; background: var(--dark); color: #fff; font-size: 14px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.doc-section p, .doc-section li { font-size: 15px; line-height: 1.55; }
+.doc-section p { margin: 0 0 10px; }
+.doc-section ul { margin: 12px 0 0; padding-left: 22px; display: flex; flex-direction: column; gap: 6px; }
+.doc-table { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0; font-size: 14px; border-radius: 16px; overflow: hidden; background: var(--soft); }
+.doc-table th:first-child { width: 40%; }
+.doc-table th { text-align: left; font-weight: 600; color: var(--muted); padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.doc-table td { padding: 12px 16px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.doc-table tr:last-child td { border-bottom: 0; }
+.doc-table td:first-child { font-weight: 500; }
+.doc-table td.muted { color: var(--muted); }
+.doc-note { margin-top: 12px !important; padding: 12px 16px; border-radius: 12px; background: #fff4e5; font-size: 14px !important; }
+.doc-footnotes { border-top: 1px solid var(--line); padding-top: 16px; margin-top: 8px; }
+.doc-footnotes p { margin: 0 0 6px; font-size: 13px; color: var(--muted); }
+.doc-foot { padding: 24px 0 8px; }
+.profile-badges { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.profile-badge { padding: 4px 12px; border-radius: 999px; background: var(--soft); font-size: 13px; font-weight: 600; }
+.profile-badge.premium { background: linear-gradient(90deg, #1c1d21, #4b4f5c); color: #fff; }

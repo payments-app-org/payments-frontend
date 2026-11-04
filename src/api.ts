@@ -27,6 +27,8 @@ export type Account = {
   accountNumber: string | null
   openedAt: string | null
   limits: AccountLimits | null
+  // Кредитная карта: с неё кошелёк не пополнить
+  credit: boolean
 }
 
 type ApiAccount = {
@@ -42,12 +44,17 @@ type ApiAccount = {
   accountNumber: string | null
   openedAt: string | null
   limits: AccountLimits | null
+  credit: boolean
 }
 
 export type OperationType = 'SBP_PHONE' | 'CARD2CARD' | 'OWN_TRANSFER' | 'ABROAD' | 'WALLET_TRANSFER' | 'REQUISITES' | 'REQUISITES_OUR' | 'BILL'
 
-// «МТС Premium» — развлекательная подписка, «МТС Банк Premium» — пакет банковских услуг
-export type UserSubscription = 'NONE' | 'MTS_PREMIUM' | 'BANK_PREMIUM'
+// «Премиум» — развлекательная подписка, «Банк Премиум» — пакет банковских услуг
+export type UserSubscription = 'NONE' | 'PREMIUM' | 'BANK_PREMIUM'
+
+export const SUBSCRIPTION_LABEL: Record<UserSubscription, string> = {
+  NONE: 'Без подписки', PREMIUM: 'Премиум', BANK_PREMIUM: 'Банк Премиум',
+}
 
 export type Commission = {
   amount: number
@@ -101,7 +108,7 @@ async function request<T>(url: string, init?: RequestInit): Promise<T> {
 function toAccount(a: ApiAccount): Account {
   const base = {
     id: a.id, name: a.title, last4: a.cardLast4, paymentSystem: a.paymentSystem, balance: a.available,
-    cardExpiry: a.cardExpiry, isDefault: a.isDefault, defaultForPayments: a.defaultForPayments, limits: a.limits,
+    cardExpiry: a.cardExpiry, isDefault: a.isDefault, defaultForPayments: a.defaultForPayments, limits: a.limits, credit: a.credit,
     accountNumber: a.accountNumber, openedAt: a.openedAt,
   }
   if (a.type === 'WALLET') return { ...base, kind: 'wallet', title: a.title }

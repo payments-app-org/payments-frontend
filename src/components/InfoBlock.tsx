@@ -1,16 +1,17 @@
 import { FileText } from 'lucide-react'
-import { documents } from '../data/mock'
+import { Link } from 'react-router-dom'
+import { serviceDocuments } from '../data/documents'
 
 export default function InfoBlock() {
   return (
     <section className="panel info">
       <h2>Информация об оказываемых услугах</h2>
       <div className="docs">
-        {documents.map((d) => (
-          <a key={d} className="doc" href="#">
+        {serviceDocuments.map((d) => (
+          <Link key={d.slug} className="doc" to={`/docs/${d.slug}`}>
             <FileText size={22} strokeWidth={1.5} />
-            <span>{d}</span>
-          </a>
+            <span>{d.title}</span>
+          </Link>
         ))}
       </div>
     </section>

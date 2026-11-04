@@ -31,8 +31,3 @@ export const transferTypes = [
   { id: 'wallet', title: 'На кошелек', icon: 'Wallet', to: '/transfers/wallet' },
 ] as const
 
-export const documents = [
-  'Памятка об электронных денежных средствах',
-  'Переводы за рубеж',
-  'Тарифы за переводы',
-]

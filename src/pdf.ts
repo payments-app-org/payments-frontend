@@ -2,7 +2,16 @@
 // Библиотеки грузим только по требованию. Текст в таком PDF — картинка; боевые документы лучше делать на сервере.
 export async function saveElementAsPdf(el: HTMLElement, fileName: string, format: 'a4' | 'a5' = 'a4') {
   const [{ jsPDF }, { default: html2canvas }] = await Promise.all([import('jspdf'), import('html2canvas')])
-  const canvas = await html2canvas(el, { scale: 2, backgroundColor: '#ffffff' })
+  // html2canvas не понимает CSS zoom (интерфейс в масштабе 80%) — на время снимка снимаем масштаб
+  const root = document.documentElement
+  const zoom = root.style.zoom
+  root.style.zoom = '1'
+  let canvas: HTMLCanvasElement
+  try {
+    canvas = await html2canvas(el, { scale: 2, backgroundColor: '#ffffff' })
+  } finally {
+    root.style.zoom = zoom
+  }
   const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format })
   const margin = 10
   const pageWidth = pdf.internal.pageSize.getWidth() - margin * 2
