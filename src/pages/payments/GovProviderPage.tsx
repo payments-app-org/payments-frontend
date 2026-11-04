@@ -141,7 +141,7 @@ function ChargeSearch({ details, back }: { details: ProviderDetails; back: [stri
               </span>
             </button>
           ))}
-          {charge && <ChargePay key={charge.id} charge={charge} back={back} />}
+          {charge && <ChargePay key={charge.id} charge={charge} providerCode={details.provider.code} back={back} />}
         </div>
       )}
     </>
@@ -149,14 +149,14 @@ function ChargeSearch({ details, back }: { details: ProviderDetails; back: [stri
 }
 
 // Оплата найденного начисления: сумма — ровно из начисления
-function ChargePay({ charge, back }: { charge: Charge; back: [string, string] }) {
+function ChargePay({ charge, providerCode, back }: { charge: Charge; providerCode: string; back: [string, string] }) {
   const { accounts } = useAccounts()
   const payment = usePaymentSubmit()
   const [fromId, setFromId] = useState<string | null>(null)
   const sources = accounts?.filter((a) => a.kind !== 'external') ?? []
   const from = sources.find((a) => a.id === fromId) ?? (sources.length ? defaultSource(sources) : null)
   const amount = charge.payableAmount
-  const commission = useCommission('UIN_PAYMENT', from?.id, amount)
+  const commission = useCommission('BILL', from?.id, amount, 0, { providerCode })
   const amountErr = amountError(totalOf(commission, amount), from, amount)
   const submitting = payment.state.status === 'submitting'
 
@@ -165,7 +165,7 @@ function ChargePay({ charge, back }: { charge: Charge; back: [string, string] })
   }
   const pay = () => {
     if (!from || commission.status !== 'ready' || amountErr) return
-    payment.submit({ type: 'UIN_PAYMENT', sourceAccountId: from.id, amount, quoteToken: commission.data.quoteToken, chargeId: charge.id })
+    payment.submit({ type: 'BILL', sourceAccountId: from.id, amount, quoteToken: commission.data.quoteToken, providerCode, chargeId: charge.id })
   }
   return (
     <>
@@ -203,8 +203,8 @@ function GovFeeForm({ details, back }: { details: ProviderDetails; back: [string
   const sources = accounts?.filter((a) => a.kind !== 'external') ?? []
   const from = sources.find((a) => a.id === fromId) ?? (sources.length ? defaultSource(sources) : null)
   const amount = parseAmount(rawAmount)
-  const commission = useCommission('UIN_PAYMENT', from?.id, amount, quoteRefresh)
-  const amountErr = amountError(totalOf(commission, amount), from, amount, maxPaymentAmount(limits, 'UIN_PAYMENT', from))
+  const commission = useCommission('BILL', from?.id, amount, quoteRefresh, { providerCode: details.provider.code })
+  const amountErr = amountError(totalOf(commission, amount), from, amount, maxPaymentAmount(limits, 'BILL', from))
   const uinOk = (uin.length === 20 || uin.length === 25) && uin.startsWith(prefix)
   const uinErr = uin.length >= prefix.length && !uin.startsWith(prefix) ? `УИН Росреестра начинается с ${prefix}` : undefined
   const phoneDigits = payerPhone.replace(/\D/g, '')
@@ -225,7 +225,7 @@ function GovFeeForm({ details, back }: { details: ProviderDetails; back: [string
     e.preventDefault()
     if (!valid || submitting || commission.status !== 'ready' || !from) return
     payment.submit({
-      type: 'UIN_PAYMENT', sourceAccountId: from.id, amount, quoteToken: commission.data.quoteToken,
+      type: 'BILL', sourceAccountId: from.id, amount, quoteToken: commission.data.quoteToken,
       providerCode: details.provider.code,
       recipientFields: { uin, payerName: payerName.trim(), payerAddress: payerAddress.trim(), payerPhone: `+${phoneDigits}` },
     })
@@ -247,7 +247,7 @@ function GovFeeForm({ details, back }: { details: ProviderDetails; back: [string
           onFocus={() => { if (!payerPhone) setPayerPhone('+7') }}
           onChange={(e) => setPayerPhone(e.target.value.replace(/\D/g, '') === '7' ? '+7' : formatPhone(e.target.value))} />
       </Field>
-      <Field label="Сумма платежа" error={amountErr} hint={<AmountHint operationType="UIN_PAYMENT" account={from} />}>
+      <Field label="Сумма платежа" error={amountErr} hint={<AmountHint operationType="BILL" account={from} />}>
         <AmountInput value={rawAmount} onChange={setRawAmount} placeholder="₽" />
       </Field>
       <div className="group pay-method">

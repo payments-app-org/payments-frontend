@@ -4,14 +4,14 @@ export const templates = [{ id: 'yota', name: 'Yota', color: '#3fb6e8', to: '/pa
 
 export const paymentCategories = [
   { id: 'mobile', title: 'Мобильная связь', icon: 'Smartphone', to: '/payments/mobile' },
-  { id: 'games', title: 'Игры и сервисы', icon: 'Gamepad2' },
+  { id: 'games', title: 'Игры и сервисы', icon: 'Gamepad2', to: '/payments/games' },
   { id: 'utilities', title: 'Услуги ЖКХ', icon: 'Bath' },
   { id: 'gov', title: 'Госуслуги, штрафы, налоги', icon: 'Flag', to: '/payments/gov' },
   { id: 'internet', title: 'Интернет и ТВ, Телефония', icon: 'MessageSquare' },
   { id: 'loans', title: 'Погашение кредитов', icon: 'Percent', to: '/payments/loans' },
   { id: 'emoney', title: 'Электронные деньги', icon: 'Coins' },
-  { id: 'transport', title: 'Транспорт', icon: 'Bus' },
-  { id: 'foreign', title: 'Зарубежные операторы', icon: 'Radio' },
+  { id: 'transport', title: 'Транспорт', icon: 'Bus', to: '/payments/transport' },
+  { id: 'foreign', title: 'Зарубежные операторы', icon: 'Radio', to: '/payments/foreign-mobile' },
   { id: 'education', title: 'Образование', icon: 'GraduationCap' },
   { id: 'shops', title: 'Интернет-магазины', icon: 'ShoppingBasket' },
   { id: 'travel', title: 'Путешествие', icon: 'Plane' },
@@ -20,7 +20,7 @@ export const paymentCategories = [
   { id: 'donations', title: 'Пожертвования', icon: 'HeartHandshake' },
   { id: 'free', title: 'Свободные реквизиты', icon: 'FileText', to: '/transfers/requisites' },
   { id: 'misc', title: 'Разное', icon: 'Ellipsis' },
-  { id: 'steam', title: 'Они вернулись! – Steam, Playstation, Spotify…', icon: 'Gamepad2' },
+  { id: 'steam', title: 'Они вернулись! – Steam, Playstation, Spotify…', icon: 'Gamepad2', to: '/payments/games' },
 ] as const
 
 export const transferTypes = [

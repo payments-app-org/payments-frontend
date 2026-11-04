@@ -5,13 +5,13 @@ import { fetchProviders, type Provider } from '../api'
 import { loanBanks } from '../data/loanBanks'
 import ProviderLogo from './ProviderLogo'
 
-type Hit = { key: string; name: string; domain: string | null; color: string; to: string }
+type Hit = { key: string; name: string; domain: string | null; color: string; country?: string | null; to: string }
 
-// Куда ведёт поставщик: связь — форма оператора, госуслуги — форма поставщика
+// Куда ведёт поставщик: связь и госуслуги — свои формы, остальные — универсальная форма по полям поставщика
 export function providerRoute(p: Provider) {
   if (p.groupCode === 'MOBILE') return `/payments/mobile/${p.code}`
   if (p.groupCode === 'GOV') return `/payments/gov/${p.code}`
-  return '/'
+  return `/payments/bill/${p.code}`
 }
 
 // Поиск по всем поставщикам (biller) и банкам погашения кредитов, выпадающий список с логотипами
@@ -35,7 +35,7 @@ export default function ProviderSearch() {
         .filter((b) => b.name.toLowerCase().includes(query.toLowerCase()))
         .map((b) => ({ key: `loan-${b.code}`, name: b.name, domain: b.domain, color: b.color, to: `/payments/loans/${b.code}` }))
       fetchProviders({ q: query }, ctrl.signal)
-        .then((list) => setHits([...list.map((p) => ({ key: p.code, name: p.name, domain: p.domain, color: p.color, to: providerRoute(p) })), ...loans]))
+        .then((list) => setHits([...list.map((p) => ({ key: p.code, name: p.name, domain: p.domain, color: p.color, country: p.countryCode, to: providerRoute(p) })), ...loans]))
         .catch((e) => { if (e.name !== 'AbortError') setHits(loans) })
       setActive(0)
     }, 250)
@@ -70,7 +70,7 @@ export default function ProviderSearch() {
           {hits.map((h, i) => (
             <button type="button" key={h.key} className={i === active ? 'select-option active' : 'select-option'}
               onMouseEnter={() => setActive(i)} onClick={() => navigate(h.to)}>
-              <ProviderLogo name={h.name} domain={h.domain} color={h.color} />
+              <ProviderLogo name={h.name} domain={h.domain} color={h.color} country={h.country} />
               <span>{h.name}</span>
             </button>
           ))}

@@ -44,7 +44,7 @@ type ApiAccount = {
   limits: AccountLimits | null
 }
 
-export type OperationType = 'SBP_PHONE' | 'CARD2CARD' | 'OWN_TRANSFER' | 'ABROAD' | 'WALLET_TRANSFER' | 'REQUISITES' | 'REQUISITES_OUR' | 'UIN_PAYMENT' | 'MOBILE_PAYMENT'
+export type OperationType = 'SBP_PHONE' | 'CARD2CARD' | 'OWN_TRANSFER' | 'ABROAD' | 'WALLET_TRANSFER' | 'REQUISITES' | 'REQUISITES_OUR' | 'BILL'
 
 export type Commission = {
   amount: number
@@ -130,7 +130,8 @@ export function fetchAccounts() {
 }
 
 // От чего ещё зависит тариф: карта получателя (наша или чужая) или свой счёт зачисления
-export type CommissionTarget = { recipientCardNumber?: string; destinationAccountId?: string }
+// providerCode — для оплаты поставщику (BILL): тариф по группе поставщика
+export type CommissionTarget = { recipientCardNumber?: string; destinationAccountId?: string; providerCode?: string }
 
 export function fetchCommission(operationType: OperationType, sourceAccountId: string, amount: number, target: CommissionTarget, signal: AbortSignal) {
   return request<Commission>('/api/pricing/commission', {
@@ -144,10 +145,22 @@ export function fetchCommission(operationType: OperationType, sourceAccountId: s
 // Поставщики услуг из biller: операторы связи, госуслуги…
 export type Provider = {
   id: number; code: string; groupCode: string; name: string; title: string; legalName: string | null
-  domain: string | null; color: string
+  domain: string | null; color: string; countryCode: string | null; minAmount: number | null; maxAmount: number | null
 }
 export type GovDetails = { lookup: 'UIN' | 'STS_VU' | 'INN' | 'PASSPORT_INN' | 'FREE'; chargeKind: string | null; uinPrefix: string | null; description: string | null }
-export type ProviderDetails = { provider: Provider; gov: GovDetails | null }
+// Поле формы поставщика: CHOICE — выбор из options, NOMINAL — номинал из nominals (с region = значению поля dependsOn)
+export type ProviderField = {
+  key: string; label: string; type: 'TEXT' | 'DIGITS' | 'EMAIL' | 'PHONE' | 'LOCAL_PHONE' | 'CHOICE' | 'NOMINAL'
+  required: boolean; placeholder: string | null; hint: string | null; info: string | null; pattern: string | null
+  dependsOn: string | null; options: { value: string; label: string; countryCode: string | null }[]
+}
+export type Nominal = { id: number; region: string | null; name: string; price: number }
+export type ProviderDetails = {
+  provider: Provider; fields: ProviderField[]; nominals: Nominal[]; gov: GovDetails | null
+  transport: { kind: string; region: string } | null
+  game: { kind: string; platform: string | null; deliveryNote: string | null } | null
+  foreignMobile: { dialCode: string; numberLength: number; prefixes: string[]; operators: string; currency: string } | null
+}
 
 export function fetchProviders(params: { q?: string; group?: string }, signal?: AbortSignal) {
   const qs = new URLSearchParams(Object.entries(params).filter(([, v]) => v) as [string, string][])
@@ -249,19 +262,19 @@ const DEBOUNCE_MS = 500
 export function useCommission(operationType: OperationType, sourceAccountId: string | undefined, amount: number, refresh = 0,
   target: CommissionTarget | null = {}): CommissionState {
   const [state, setState] = useState<CommissionState>({ status: 'idle' })
-  const targetKey = target === null ? null : `${target.recipientCardNumber ?? ''}|${target.destinationAccountId ?? ''}`
+  const targetKey = target === null ? null : `${target.recipientCardNumber ?? ''}|${target.destinationAccountId ?? ''}|${target.providerCode ?? ''}`
 
   useEffect(() => {
     if (amount <= 0 || !sourceAccountId || targetKey === null) {
       setState({ status: 'idle' })
       return
     }
-    const [recipientCardNumber, destinationAccountId] = targetKey.split('|')
+    const [recipientCardNumber, destinationAccountId, providerCode] = targetKey.split('|')
     setState({ status: 'loading' })
     const controller = new AbortController()
     const timer = setTimeout(() => {
       fetchCommission(operationType, sourceAccountId, amount,
-        { recipientCardNumber: recipientCardNumber || undefined, destinationAccountId: destinationAccountId || undefined },
+        { recipientCardNumber: recipientCardNumber || undefined, destinationAccountId: destinationAccountId || undefined, providerCode: providerCode || undefined },
         controller.signal).then(
         (data) => setState({ status: 'ready', data }),
         (e) => {

@@ -1,9 +1,15 @@
 import { useState } from 'react'
+import { flag } from '../abroad'
 
-// Логотип поставщика: favicon его сайта; нет сайта или иконки — первая буква на фирменном цвете
-export default function ProviderLogo({ name, domain, color, big }: { name: string; domain: string | null; color: string; big?: boolean }) {
+// Логотип поставщика: флаг страны (зарубежные операторы), favicon его сайта или первая буква на фирменном цвете
+export default function ProviderLogo({ name, domain, color, country, big }: {
+  name: string; domain: string | null; color: string; country?: string | null; big?: boolean
+}) {
   const [broken, setBroken] = useState(false)
   const cls = big ? 'provider-logo big' : 'provider-logo'
+  if (country) {
+    return <span className={`${cls} flag`}>{flag(country)}</span>
+  }
   if (broken || !domain) {
     return <span className={`${cls} fallback`} style={{ background: color }}>{name[0]}</span>
   }

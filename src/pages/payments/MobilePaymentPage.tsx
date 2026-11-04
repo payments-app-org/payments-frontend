@@ -46,9 +46,9 @@ export default function MobilePaymentPage() {
   const amount = parseAmount(rawAmount)
   const operator = lookup.status === 'found' ? lookup.operator : null
   const mismatch = operator && fixed && operator.code !== fixed.code ? `Номер обслуживается оператором ${operator.name}` : null
-  const commission = useCommission('MOBILE_PAYMENT', operator ? from?.id : undefined, amount, quoteRefresh)
+  const commission = useCommission('BILL', operator ? from?.id : undefined, amount, quoteRefresh, { providerCode: operator?.code })
   const amountErr = amountTouched && !rawAmount ? 'Обязательное поле'
-    : amountError(totalOf(commission, amount), from, amount, maxPaymentAmount(limits, 'MOBILE_PAYMENT', from))
+    : amountError(totalOf(commission, amount), from, amount, maxPaymentAmount(limits, 'BILL', from))
   const valid = !!operator && !mismatch && !!from && commission.status === 'ready' && !amountErr
   const submitting = payment.state.status === 'submitting'
 
@@ -86,7 +86,7 @@ export default function MobilePaymentPage() {
     setAmountTouched(true)
     if (!valid || submitting || commission.status !== 'ready' || !from || !operator) return
     payment.submit({
-      type: 'MOBILE_PAYMENT', sourceAccountId: from.id, recipientPhone: `+7${digits}`, providerCode: operator.code,
+      type: 'BILL', sourceAccountId: from.id, providerCode: operator.code, recipientFields: { phone: `+7${digits}` },
       amount, quoteToken: commission.data.quoteToken,
     })
   }
@@ -119,7 +119,7 @@ export default function MobilePaymentPage() {
             onChange={(e) => setPhone(e.target.value.replace(/\D/g, '') === '7' ? '+7' : formatPhone(e.target.value))} />
         </Field>
         <div className="field-stack" onBlur={() => setAmountTouched(true)}>
-          <Field label="Сумма платежа" error={amountErr} hint={<AmountHint operationType="MOBILE_PAYMENT" account={from} />}>
+          <Field label="Сумма платежа" error={amountErr} hint={<AmountHint operationType="BILL" account={from} />}>
             <AmountInput value={rawAmount} onChange={setRawAmount} placeholder="₽" />
           </Field>
           {operator && !mismatch && <span className="field-hint">Рекомендуем сумму платежа с учётом ваших расходов</span>}
