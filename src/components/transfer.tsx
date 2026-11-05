@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { ChevronDown, ChevronLeft, CircleCheck, CircleX, LoaderCircle, Wallet } from 'lucide-react'
+import { ChevronDown, ChevronLeft, CircleCheck, CircleX, Clock, LoaderCircle, Wallet } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { MIN_AMOUNT, maxPaymentAmount, useOperationLimits, type Account, type CommissionState, type Payment } from '../api'
 import { formatRub, tariffLabel } from '../format'
@@ -195,6 +195,16 @@ export function PaymentResult({ payment, to, onRetry, back = ['/?tab=transfers',
         <h2>{what} не выполнен</h2>
         <p className="muted-text">{payment.message}</p>
         <button type="button" className="btn-primary link" onClick={onRetry}>Попробовать снова</button>
+      </div>
+    )
+  }
+  if (payment.status === 'ACCEPTED') {
+    return (
+      <div className="success">
+        <Clock size={56} strokeWidth={1.5} className="muted" />
+        <h2>{what} принят</h2>
+        <p className="muted-text">{formatRub(payment.amount)} · {to}<br />{payment.message}</p>
+        <Link to={back[0]} className="btn-primary link">{back[1]}</Link>
       </div>
     )
   }

@@ -1,8 +1,12 @@
 import { ApiError, CURRENT_USER_ID } from './api'
 
 export type Country = { code: string; nameRu: string; nameNative: string; dialCode: string | null; popular: boolean; currencies: string[] }
-export type Method = { id: number; countryCode: string; name: string; kind: 'CARD' | 'PHONE' | 'ACCOUNT' | 'WALLET'; kindLabel: string; color: string }
 export type Field = { key: string; label: string; type: string; pattern: string; placeholder: string | null }
+// Способ перевода вместе с полями получателя и пределами суммы (₽ за перевод) — приходит сразу со страной
+export type Method = {
+  id: number; name: string; kind: 'CARD' | 'PHONE' | 'ACCOUNT' | 'WALLET'; kindLabel: string; color: string
+  minAmount: number; maxAmount: number; fields: Field[]
+}
 export type FxQuote = { amountRub: number; currency: string; symbol: string; receiveAmount: number; rate: number; commission: number; total: number; quoteToken: string }
 
 async function get<T>(url: string, init?: RequestInit): Promise<T> {
@@ -16,7 +20,6 @@ async function get<T>(url: string, init?: RequestInit): Promise<T> {
 
 export const fetchCountries = () => get<Country[]>('/api/biller/countries')
 export const fetchCountry = (code: string) => get<{ country: Country; methods: Method[] }>(`/api/biller/countries/${code}`)
-export const fetchMethod = (id: number) => get<{ method: Method; currencies: string[]; fields: Field[] }>(`/api/biller/methods/${id}`)
 
 // Пересчёт по курсу: задаём либо сумму в рублях, либо сумму к получению
 export function fetchFxQuote(sourceAccountId: string, currency: string, by: { amountRub?: number; receiveAmount?: number }, signal?: AbortSignal) {

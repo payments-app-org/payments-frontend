@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { ChevronDown, Globe, Search } from 'lucide-react'
 import { ApiError, defaultSource, useAccounts, usePaymentSubmit } from '../../api'
 import {
-  currencyFlag, fetchCountries, fetchCountry, fetchFxQuote, fetchMethod, flag,
+  currencyFlag, fetchCountries, fetchCountry, fetchFxQuote, flag,
   type Country, type Field, type FxQuote, type Method,
 } from '../../abroad'
 import AccountPicker from '../../components/AccountPicker'
@@ -160,11 +160,15 @@ export default function AbroadTransferPage() {
   const pickMethod = (m: Method) => {
     setMethod(m)
     setMethodModal(false)
-    fetchMethod(m.id).then((d) => { setFields(d.fields); setValues({}) }, () => setFields([]))
+    // Поля получателя пришли вместе со страной — второй запрос не нужен
+    setFields(m.fields)
+    setValues({})
   }
 
   const tooMuch = !!source && source.balance !== null && !!quote && quote.total > source.balance
-  const formReady = !!country && !!source && !!currency && !!quote && quoteState === 'idle' && !!method && !tooMuch
+  // Пределы суммы у каждого способа свои (на карту — до 150 тыс. ₽, на счёт — до 1 млн); окончательно проверит payment
+  const outOfRange = !!method && !!quote && (quote.amountRub < method.minAmount || quote.amountRub > method.maxAmount)
+  const formReady = !!country && !!source && !!currency && !!quote && quoteState === 'idle' && !!method && !tooMuch && !outOfRange
 
   const fieldError = (f: Field) => {
     const raw = values[f.key] ?? ''
@@ -294,6 +298,9 @@ export default function AbroadTransferPage() {
               )}
             </div>
             {tooMuch && <div className="form-error">Недостаточно средств</div>}
+            {!tooMuch && outOfRange && method && (
+              <div className="form-error">Этим способом можно отправить от {formatRub(method.minAmount)} до {formatRub(method.maxAmount)}</div>
+            )}
             <button type="button" className="btn-primary" disabled={!formReady} onClick={() => setStep('details')}>Продолжить</button>
           </>
         )}

@@ -72,7 +72,7 @@ export type Commission = {
 }
 
 export type PaymentStatus =
-  | 'CREATED' | 'RESERVED' | 'FRAUD_APPROVED' | 'SENT_TO_PROCESSING'
+  | 'CREATED' | 'RESERVED' | 'FRAUD_APPROVED' | 'SENT_TO_PROCESSING' | 'ACCEPTED'
   | 'CONFIRMING' | 'SUCCESS' | 'COMPENSATING' | 'FAILED'
 
 export type Payment = {
@@ -516,7 +516,9 @@ export type SubmitState =
   | { status: 'rejected'; message: string; code?: string }
 
 const POLL_MS = 2000
-const FINAL: PaymentStatus[] = ['SUCCESS', 'FAILED']
+// ACCEPTED — долгий перевод принят (за рубеж, из другого банка, подписка через партнёра): итог может прийти
+// через минуты и часы, ждать его на экране незачем — опрос останавливаем, результат будет в истории
+const STOP_POLLING: PaymentStatus[] = ['SUCCESS', 'FAILED', 'ACCEPTED']
 
 function getPayment(id: string) {
   return request<Payment>(`/api/payments/${id}`, { headers: { 'X-User-Id': CURRENT_USER_ID } })
@@ -545,7 +547,7 @@ export function usePaymentSubmit() {
       })
       key.current = crypto.randomUUID()
       // 202 — платёж ещё идёт: опрашиваем, пока не завершится
-      while (!FINAL.includes(payment.status) && alive.current) {
+      while (!STOP_POLLING.includes(payment.status) && alive.current) {
         if (alive.current) setState({ status: 'done', payment })
         await new Promise((r) => setTimeout(r, POLL_MS))
         payment = await getPayment(payment.paymentId)
