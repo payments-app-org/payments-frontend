@@ -1,0 +1,26 @@
+# Раз в неделю — PR с обновлениями; minor и patch — одним PR, мажорные (React, TypeScript…) — отдельными:
+# их делаем осознанно, вместе с проверкой интерфейса. Мажорные смены базового образа Node не предлагает.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      npm-minor:
+        update-types: [minor, patch]
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    ignore:
+      - dependency-name: "*"
+        update-types: [version-update:semver-major]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday

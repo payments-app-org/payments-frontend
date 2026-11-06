@@ -1,0 +1,18 @@
+# CI фронтенда — шаблон из payments-ci: проверка типов, сборка, проверка зависимостей npm
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  ci:
+    uses: payments-app-org/payments-ci/.github/workflows/frontend.yml@v1
+    secrets: inherit
+    permissions:
+      contents: read
