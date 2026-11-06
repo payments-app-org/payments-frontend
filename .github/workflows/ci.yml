@@ -1,4 +1,5 @@
-# CI фронтенда — шаблон из payments-ci: проверка типов, сборка, проверка зависимостей npm
+# CI фронтенда — шаблон из payments-ci: проверка типов, сборка, проверка зависимостей npm, образ и его проверка;
+# в main — публикация образа ghcr.io/payments-app-org/payments-frontend:<sha> и выкатка
 name: CI
 
 on:
@@ -16,3 +17,4 @@ jobs:
     secrets: inherit
     permissions:
       contents: read
+      packages: write
