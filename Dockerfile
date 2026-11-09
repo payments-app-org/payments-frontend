@@ -15,7 +15,7 @@ RUN npm run build
 
 # Боевой образ (по умолчанию): nginx отдаёт собранную статику. Запросы /api/* сюда не приходят —
 # в Kubernetes их разводит по сервисам вход (ingress). Без root, порт 8080
-FROM nginxinc/nginx-unprivileged:1.29-alpine
+FROM nginxinc/nginx-unprivileged:1.31-alpine
 # Исправления пакетов ОС, вышедшие после сборки базового образа (иначе Trivy в CI остановит образ
 # на исправимой CRITICAL). Обновить можно только от root; потом обратно пользователь nginx базового образа
 USER root
