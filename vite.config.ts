@@ -8,14 +8,10 @@ export default defineConfig({
     port: 5173,
     // В контейнере на macOS события файловой системы приходят ненадёжно
     watch: { usePolling: true, interval: 300 },
-    // Браузер ходит в сервисы через dev-сервер, поэтому CORS не нужен
+    // Браузер ходит в API через dev-сервер, поэтому CORS не нужен. Весь /api — в gateway (payments-gateway),
+    // он разводит запросы по сервисам, как в кластере
     proxy: {
-      '/api/users': process.env.ACCOUNT_URL ?? 'http://localhost:8081',
-      '/api/pricing': process.env.PRICING_URL ?? 'http://localhost:8082',
-      '/api/payments': process.env.PAYMENT_URL ?? 'http://localhost:8083',
-      '/api/history': process.env.HISTORY_URL ?? 'http://localhost:8086',
-      '/api/biller': process.env.BILLER_URL ?? 'http://localhost:8087',
-      '/api/autopayments': process.env.AUTOPAYMENTS_URL ?? 'http://localhost:8089',
+      '/api': process.env.API_URL ?? 'http://localhost:8080',
     },
   },
 })
