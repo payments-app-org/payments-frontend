@@ -1,7 +1,8 @@
 # syntax=docker/dockerfile:1
 
 # dev — dev-сервер Vite для docker compose (payments-local): код монтируется томом, правки видны сразу
-FROM node:22-alpine AS dev
+# На архитектуре машины сборки: статика одинаковая для amd64 и arm64, npm не работает под эмуляцией
+FROM --platform=$BUILDPLATFORM node:22-alpine AS dev
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
