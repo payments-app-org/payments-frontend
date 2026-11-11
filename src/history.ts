@@ -1,4 +1,4 @@
-import { CURRENT_USER_ID } from './api'
+import { apiFetch } from './auth'
 
 export type Direction = 'INCOME' | 'EXPENSE'
 export type Loyalty = 'CASHBACK' | 'PREMIUM' | 'DISCOUNT'
@@ -72,13 +72,13 @@ export async function fetchOperations(f: HistoryFilters, cursor: string | null, 
   f.currencies.forEach((c) => q.append('currency', c))
   if (f.title) q.set('title', f.title)
   if (cursor) q.set('cursor', cursor)
-  const res = await fetch(`/api/history/operations?${q}`, { headers: { 'X-User-Id': CURRENT_USER_ID }, signal })
+  const res = await apiFetch(`/api/history/operations?${q}`, { signal })
   if (!res.ok) throw new Error(`Ошибка ${res.status}`)
   return res.json() as Promise<{ items: Operation[]; nextCursor: string | null }>
 }
 
 export async function fetchOperation(id: string): Promise<Operation> {
-  const res = await fetch(`/api/history/operations/${id}`, { headers: { 'X-User-Id': CURRENT_USER_ID } })
+  const res = await apiFetch(`/api/history/operations/${id}`)
   if (!res.ok) throw new Error(res.status === 404 ? 'Операция не найдена' : `Ошибка ${res.status}`)
   return res.json()
 }
@@ -100,7 +100,7 @@ export async function fetchSummary(month: string, direction: Direction, category
   const q = new URLSearchParams({ month, direction })
   if (category) q.set('category', category)
   if (title) q.set('title', title)
-  const res = await fetch(`/api/history/summary?${q}`, { headers: { 'X-User-Id': CURRENT_USER_ID } })
+  const res = await apiFetch(`/api/history/summary?${q}`)
   if (!res.ok) throw new Error(`Ошибка ${res.status}`)
   return res.json()
 }
@@ -118,7 +118,7 @@ export function monthRange(month: string) {
 }
 
 export async function fetchCategories(): Promise<Category[]> {
-  const res = await fetch('/api/history/categories')
+  const res = await apiFetch('/api/history/categories')
   if (!res.ok) throw new Error(`Ошибка ${res.status}`)
   return res.json()
 }

@@ -1,6 +1,7 @@
-import { ChevronRight, HeartHandshake } from 'lucide-react'
+import { ChevronRight, HeartHandshake, LogOut } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { SUBSCRIPTION_LABEL, useProfile } from '../../api'
+import { logout } from '../../auth'
 import { formatRub } from '../../format'
 import { formatPhone } from '../payments/MobilePaymentPage'
 
@@ -45,6 +46,11 @@ export default function MorePage() {
             <ChevronRight size={20} className="muted" />
           </button>
         ))}
+        {/* Выход: закрывает сессию в Keycloak, следующий вход — снова с паролем */}
+        <button type="button" className="choose-row" onClick={() => void logout()}>
+          <span className="round-icon"><LogOut size={22} /></span>
+          <span className="choose-title"><b>Выйти</b><span className="muted small">Завершить сеанс на этом устройстве</span></span>
+        </button>
       </section>
     </>
   )

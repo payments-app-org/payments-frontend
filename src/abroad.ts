@@ -1,4 +1,5 @@
-import { ApiError, CURRENT_USER_ID } from './api'
+import { ApiError, currentUserId } from './api'
+import { apiFetch } from './auth'
 
 export type Country = { code: string; nameRu: string; nameNative: string; dialCode: string | null; popular: boolean; currencies: string[] }
 export type Field = { key: string; label: string; type: string; pattern: string; placeholder: string | null }
@@ -10,7 +11,7 @@ export type Method = {
 export type FxQuote = { amountRub: number; currency: string; symbol: string; receiveAmount: number; rate: number; commission: number; total: number; quoteToken: string }
 
 async function get<T>(url: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(url, init)
+  const res = await apiFetch(url, init)
   if (!res.ok) {
     const problem = await res.json().catch(() => null)
     throw new ApiError(res.status, problem?.detail ?? `Ошибка ${res.status}`, problem?.code)
@@ -26,7 +27,7 @@ export function fetchFxQuote(sourceAccountId: string, currency: string, by: { am
   return get<FxQuote>('/api/pricing/fx-quote', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ userId: CURRENT_USER_ID, sourceAccountId, currency, ...by }),
+    body: JSON.stringify({ userId: currentUserId(), sourceAccountId, currency, ...by }),
     signal,
   })
 }

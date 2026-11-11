@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-// Авторизации пока нет — работаем от имени демо-пользователя из сида сервиса account
-export const CURRENT_USER_ID = '00000000-0000-0000-0000-000000000001'
+import { apiFetch, currentUserId } from './auth'
+
+// Кто пользователь — знает токен Keycloak (auth.ts). Его id нужен в адресах вида /api/users/{id}/…;
+// gateway сверяет его с токеном и сам ставит сервисам X-User-Id
+export { currentUserId }
 
 export type PaymentSystem = 'MIR' | 'VISA' | 'MASTERCARD'
 
@@ -97,7 +100,7 @@ export class ApiError extends Error {
 }
 
 async function request<T>(url: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(url, init)
+  const res = await apiFetch(url, init)
   if (!res.ok) {
     const problem = await res.json().catch(() => null)
     throw new ApiError(res.status, problem?.detail ?? `Ошибка ${res.status}`, problem?.code)
@@ -122,7 +125,7 @@ export function defaultSource(accounts: Account[] | null, except?: string | null
 }
 
 export function linkCard(cardNumber: string, expiry: string, cvc: string) {
-  return request<ApiAccount>(`/api/users/${CURRENT_USER_ID}/linked-cards`, {
+  return request<ApiAccount>(`/api/users/${currentUserId()}/linked-cards`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ cardNumber, expiry, cvc }),
@@ -130,12 +133,12 @@ export function linkCard(cardNumber: string, expiry: string, cvc: string) {
 }
 
 export function unlinkCard(accountId: string) {
-  return request<ApiAccount[]>(`/api/users/${CURRENT_USER_ID}/linked-cards/${accountId}`, { method: 'DELETE' })
+  return request<ApiAccount[]>(`/api/users/${currentUserId()}/linked-cards/${accountId}`, { method: 'DELETE' })
     .then(() => notifyAccountsChanged())
 }
 
 export function setDefaultPaymentAccount(accountId: string) {
-  return request<ApiAccount[]>(`/api/users/${CURRENT_USER_ID}/default-payment-account`, {
+  return request<ApiAccount[]>(`/api/users/${currentUserId()}/default-payment-account`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ accountId }),
@@ -144,7 +147,7 @@ export function setDefaultPaymentAccount(accountId: string) {
 
 export function fetchAccounts() {
   // Свои счета в других банках (источник автопополнения по СБП) в кошельках и картах не показываем
-  return request<ApiAccount[]>(`/api/users/${CURRENT_USER_ID}/accounts`)
+  return request<ApiAccount[]>(`/api/users/${currentUserId()}/accounts`)
     .then((list) => list.filter((a) => a.type !== 'EXTERNAL_SBP').map(toAccount))
 }
 
@@ -156,7 +159,7 @@ export function fetchCommission(operationType: OperationType, sourceAccountId: s
   return request<Commission>('/api/pricing/commission', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ userId: CURRENT_USER_ID, sourceAccountId, operationType, amount, ...target }),
+    body: JSON.stringify({ userId: currentUserId(), sourceAccountId, operationType, amount, ...target }),
     signal,
   })
 }
@@ -204,29 +207,28 @@ export type SubscriptionBill = {
 }
 export type SubscriptionWithBills = { subscription: Subscription; bills: SubscriptionBill[] }
 
-const asUser = { 'X-User-Id': CURRENT_USER_ID }
-const asUserJson = { ...asUser, 'Content-Type': 'application/json' }
+const JSON_HEADERS = { 'Content-Type': 'application/json' }
 
 export function fetchSubscriptionProviders(region: string) {
   return request<Provider[]>(`/api/biller/subscription-providers?region=${encodeURIComponent(region)}`)
 }
 
 export function fetchSubscriptions() {
-  return request<Subscription[]>('/api/biller/subscriptions', { headers: asUser })
+  return request<Subscription[]>('/api/biller/subscriptions')
 }
 
 export function fetchSubscription(id: string) {
-  return request<SubscriptionWithBills>(`/api/biller/subscriptions/${id}`, { headers: asUser })
+  return request<SubscriptionWithBills>(`/api/biller/subscriptions/${id}`)
 }
 
 export function saveSubscription(id: string | null, body: { providerCode?: string; name: string; fields: Record<string, string> }) {
   return request<SubscriptionWithBills>(id ? `/api/biller/subscriptions/${id}` : '/api/biller/subscriptions', {
-    method: id ? 'PUT' : 'POST', headers: asUserJson, body: JSON.stringify(body),
+    method: id ? 'PUT' : 'POST', headers: JSON_HEADERS, body: JSON.stringify(body),
   })
 }
 
 export async function deleteSubscription(id: string) {
-  const res = await fetch(`/api/biller/subscriptions/${id}`, { method: 'DELETE', headers: asUser })
+  const res = await apiFetch(`/api/biller/subscriptions/${id}`, { method: 'DELETE' })
   if (!res.ok) throw new ApiError(res.status, 'Не удалось удалить шаблон')
 }
 
@@ -252,42 +254,42 @@ export type NewAutopayment = {
 }
 
 export function fetchTemplates() {
-  return request<PaymentTemplate[]>('/api/autopayments/templates', { headers: asUser })
+  return request<PaymentTemplate[]>('/api/autopayments/templates')
 }
 
 export function fetchTemplate(id: string) {
-  return request<PaymentTemplate>(`/api/autopayments/templates/${id}`, { headers: asUser })
+  return request<PaymentTemplate>(`/api/autopayments/templates/${id}`)
 }
 
 export function saveTemplate(id: string | null, body: { name: string; providerCode: string; fields: Record<string, string>; amount: number; sourceAccountId: string }) {
   return request<PaymentTemplate>(id ? `/api/autopayments/templates/${id}` : '/api/autopayments/templates', {
-    method: id ? 'PUT' : 'POST', headers: asUserJson, body: JSON.stringify(body),
+    method: id ? 'PUT' : 'POST', headers: JSON_HEADERS, body: JSON.stringify(body),
   })
 }
 
 export async function deleteTemplate(id: string) {
-  const res = await fetch(`/api/autopayments/templates/${id}`, { method: 'DELETE', headers: asUser })
+  const res = await apiFetch(`/api/autopayments/templates/${id}`, { method: 'DELETE' })
   if (!res.ok) throw new ApiError(res.status, 'Не удалось удалить шаблон')
 }
 
 export function fetchAutopayments() {
-  return request<Autopayment[]>('/api/autopayments', { headers: asUser })
+  return request<Autopayment[]>('/api/autopayments')
 }
 
 export function fetchAutopayment(id: string) {
-  return request<{ autopayment: Autopayment; runs: AutopaymentRun[] }>(`/api/autopayments/${id}`, { headers: asUser })
+  return request<{ autopayment: Autopayment; runs: AutopaymentRun[] }>(`/api/autopayments/${id}`)
 }
 
 export function createAutopayment(body: NewAutopayment) {
-  return request<Autopayment>('/api/autopayments', { method: 'POST', headers: asUserJson, body: JSON.stringify(body) })
+  return request<Autopayment>('/api/autopayments', { method: 'POST', headers: JSON_HEADERS, body: JSON.stringify(body) })
 }
 
 export function setAutopaymentStatus(id: string, status: 'ACTIVE' | 'PAUSED') {
-  return request<Autopayment>(`/api/autopayments/${id}`, { method: 'PATCH', headers: asUserJson, body: JSON.stringify({ status }) })
+  return request<Autopayment>(`/api/autopayments/${id}`, { method: 'PATCH', headers: JSON_HEADERS, body: JSON.stringify({ status }) })
 }
 
 export async function deleteAutopayment(id: string) {
-  const res = await fetch(`/api/autopayments/${id}`, { method: 'DELETE', headers: asUser })
+  const res = await apiFetch(`/api/autopayments/${id}`, { method: 'DELETE' })
   if (!res.ok) throw new ApiError(res.status, 'Не удалось удалить автоплатёж')
 }
 
@@ -310,23 +312,23 @@ export type NewTopup = {
 }
 
 export function fetchTopups() {
-  return request<Topup[]>('/api/autopayments/topups', { headers: asUser })
+  return request<Topup[]>('/api/autopayments/topups')
 }
 
 export function fetchTopup(id: string) {
-  return request<{ topup: Topup; runs: TopupRun[] }>(`/api/autopayments/topups/${id}`, { headers: asUser })
+  return request<{ topup: Topup; runs: TopupRun[] }>(`/api/autopayments/topups/${id}`)
 }
 
 export function createTopup(body: NewTopup) {
-  return request<Topup>('/api/autopayments/topups', { method: 'POST', headers: asUserJson, body: JSON.stringify(body) })
+  return request<Topup>('/api/autopayments/topups', { method: 'POST', headers: JSON_HEADERS, body: JSON.stringify(body) })
 }
 
 export function setTopupStatus(id: string, status: 'ACTIVE' | 'PAUSED') {
-  return request<Topup>(`/api/autopayments/topups/${id}`, { method: 'PATCH', headers: asUserJson, body: JSON.stringify({ status }) })
+  return request<Topup>(`/api/autopayments/topups/${id}`, { method: 'PATCH', headers: JSON_HEADERS, body: JSON.stringify({ status }) })
 }
 
 export async function deleteTopup(id: string) {
-  const res = await fetch(`/api/autopayments/topups/${id}`, { method: 'DELETE', headers: asUser })
+  const res = await apiFetch(`/api/autopayments/topups/${id}`, { method: 'DELETE' })
   if (!res.ok) throw new ApiError(res.status, 'Не удалось удалить автопополнение')
 }
 
@@ -360,7 +362,7 @@ let limitsCache: Promise<OperationLimit[]> | null = null
 export function useOperationLimits() {
   const [limits, setLimits] = useState<OperationLimit[]>([])
   useEffect(() => {
-    limitsCache ??= request<OperationLimit[]>(`/api/users/${CURRENT_USER_ID}/operation-limits`).catch(() => [])
+    limitsCache ??= request<OperationLimit[]>(`/api/users/${currentUserId()}/operation-limits`).catch(() => [])
     limitsCache.then(setLimits)
   }, [])
   return limits
@@ -394,7 +396,7 @@ export type Profile = {
 
 export function useProfile(refresh = 0) {
   const [profile, setProfile] = useState<Profile | null>(null)
-  useEffect(() => { request<Profile>(`/api/users/${CURRENT_USER_ID}`).then(setProfile, () => {}) }, [refresh])
+  useEffect(() => { request<Profile>(`/api/users/${currentUserId()}`).then(setProfile, () => {}) }, [refresh])
   return profile
 }
 
@@ -402,13 +404,13 @@ export function useProfile(refresh = 0) {
 export type Roundup = { step: 10 | 100 | 1000; fundCode: string; fundName: string; enabledAt: string }
 
 export function enableRoundup(step: number, fundCode: string, fundName: string) {
-  return request<Roundup>(`/api/users/${CURRENT_USER_ID}/roundup`, {
+  return request<Roundup>(`/api/users/${currentUserId()}/roundup`, {
     method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ step, fundCode, fundName }),
   })
 }
 
 export async function disableRoundup() {
-  const res = await fetch(`/api/users/${CURRENT_USER_ID}/roundup`, { method: 'DELETE' })
+  const res = await apiFetch(`/api/users/${currentUserId()}/roundup`, { method: 'DELETE' })
   if (!res.ok) throw new ApiError(res.status, 'Не удалось отключить округление')
 }
 
@@ -418,7 +420,7 @@ export type TariffRow = {
 export type TariffSection = { operationType: string; title: string; outgoing: TariffRow[]; incoming: TariffRow[] }
 
 export function fetchTariffs(account: 'WALLET' | 'OUR_CARD') {
-  return request<{ subscription: string; sections: TariffSection[] }>(`/api/pricing/tariffs?userId=${CURRENT_USER_ID}&account=${account}`)
+  return request<{ subscription: string; sections: TariffSection[] }>(`/api/pricing/tariffs?userId=${currentUserId()}&account=${account}`)
 }
 
 const ACCOUNTS_CHANGED = 'accounts-changed'
@@ -521,7 +523,7 @@ const POLL_MS = 2000
 const STOP_POLLING: PaymentStatus[] = ['SUCCESS', 'FAILED', 'ACCEPTED']
 
 function getPayment(id: string) {
-  return request<Payment>(`/api/payments/${id}`, { headers: { 'X-User-Id': CURRENT_USER_ID } })
+  return request<Payment>(`/api/payments/${id}`)
 }
 
 // Отправка платежа. Ключ идемпотентности живёт, пока не получен ответ:
@@ -542,7 +544,7 @@ export function usePaymentSubmit() {
     try {
       let payment = await request<Payment>('/api/payments', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-User-Id': CURRENT_USER_ID, 'X-Idempotency-Key': key.current },
+        headers: { 'Content-Type': 'application/json', 'X-Idempotency-Key': key.current },
         body: JSON.stringify(body),
       })
       key.current = crypto.randomUUID()
