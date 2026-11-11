@@ -2,9 +2,10 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { CircleHelp } from 'lucide-react'
 import { useParams } from 'react-router-dom'
 import {
-  ApiError, CURRENT_USER_ID, defaultSource, fetchProvider, maxPaymentAmount, useAccounts, useCommission,
+  ApiError, defaultSource, fetchProvider, maxPaymentAmount, useAccounts, useCommission,
   useOperationLimits, usePaymentSubmit, type ProviderDetails,
 } from '../../api'
+import { apiFetch } from '../../auth'
 import ProviderLayout from '../../components/ProviderLayout'
 import ProviderLogo from '../../components/ProviderLogo'
 import { AccountSelect, AmountHint, AmountInput, Field, PaymentResult, Summary, amountError, parseAmount, totalOf } from '../../components/transfer'
@@ -89,7 +90,7 @@ function ChargeSearch({ details, back }: { details: ProviderDetails; back: [stri
     try {
       const qs = new URLSearchParams({ provider: details.provider.code })
       filled.forEach((f) => qs.set(f.key, raw(f.key)))
-      const res = await fetch(`/api/biller/gov/charges?${qs}`, { headers: { 'X-User-Id': CURRENT_USER_ID } })
+      const res = await apiFetch(`/api/biller/gov/charges?${qs}`)
       const body = await res.json()
       if (!res.ok) throw new ApiError(res.status, body?.detail ?? 'Не удалось найти начисления')
       setCharges(body)
